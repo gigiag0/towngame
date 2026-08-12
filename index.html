@@ -17,7 +17,7 @@
         .group-btn { padding: 8px 16px; margin: 4px; border: 2px solid #1976d2; background: white; color: #1976d2; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 14px; }
         .group-btn.active { background: #1976d2; color: white; }
 
-        /* 초기화 버튼 스타일 */
+        /* 초기화 버튼 스타일 (교사 전용) */
         .reset-btn { margin-top: 8px; padding: 6px 12px; background: #ffebee; border: 1px solid #ef5350; color: #c62828; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; }
         .reset-btn:hover { background: #ffcdd2; }
 
@@ -99,12 +99,12 @@
         <h2>🏡 근린환경 조성하기</h2>
     </div>
 
-    <!-- 모둠 선택 및 초기화 영역 -->
+    <!-- 모둠 선택 및 교사 전용 초기화 영역 -->
     <div class="group-select-container">
         <b>소속 모둠을 선택하세요:</b><br>
         <div id="group-btns" style="margin-top:6px;"></div>
         <div id="reset-area" style="display:none; margin-top: 8px;">
-            <button class="reset-btn" onclick="resetCurrentGroupCards()">🔄 선택한 모둠 카드 전체 초기화</button>
+            <button class="reset-btn" onclick="resetCurrentGroupCards()">🔒 [교사전용] 선택한 모둠 카드 전체 초기화</button>
         </div>
     </div>
 
@@ -122,7 +122,7 @@
 
         <div class="board-section">
             <h4 style="margin:0 0 6px 0;">🗺️ 나의 마을 보드판</h4>
-            <p style="font-size:11px; color:#666; margin:0 0 10px 0;">* 카드를 선택한 후 원하는 빈 칸을 터치해 배치하세요.</p>
+            <p style="font-size:11px; color:#666; margin:0 0 10px 0;">* 카드를 눌러 배치하며, <b>배치된 카드를 다시 누르면 회수</b>할 수 있습니다.</p>
             
             <div class="real-board">
                 <div class="road-v"></div>
@@ -130,43 +130,43 @@
 
                 <div class="quadrant">
                     <div class="col">
-                        <div class="slot green-dashed" id="slot-0" onclick="placeCard(0)">빈 공간 1</div>
+                        <div class="slot green-dashed" id="slot-0" onclick="handleSlotClick(0)">빈 공간 1</div>
                     </div>
                     <div class="col">
-                        <div class="slot grey-dashed" id="slot-1" onclick="placeCard(1)">빈 공간 2</div>
-                        <div class="slot grey-dashed" id="slot-2" onclick="placeCard(2)">빈 공간 3</div>
-                        <div class="slot grey-dashed" id="slot-3" onclick="placeCard(3)">빈 공간 4</div>
+                        <div class="slot grey-dashed" id="slot-1" onclick="handleSlotClick(1)">빈 공간 2</div>
+                        <div class="slot grey-dashed" id="slot-2" onclick="handleSlotClick(2)">빈 공간 3</div>
+                        <div class="slot grey-dashed" id="slot-3" onclick="handleSlotClick(3)">빈 공간 4</div>
                     </div>
                 </div>
 
                 <div class="quadrant">
                     <div class="col">
-                        <div class="slot grey-dashed" id="slot-4" onclick="placeCard(4)">빈 공간 5</div>
-                        <div class="slot grey-dashed" id="slot-5" onclick="placeCard(5)">빈 공간 6</div>
-                        <div class="slot grey-dashed" id="slot-6" onclick="placeCard(6)">빈 공간 7</div>
+                        <div class="slot grey-dashed" id="slot-4" onclick="handleSlotClick(4)">빈 공간 5</div>
+                        <div class="slot grey-dashed" id="slot-5" onclick="handleSlotClick(5)">빈 공간 6</div>
+                        <div class="slot grey-dashed" id="slot-6" onclick="handleSlotClick(6)">빈 공간 7</div>
                     </div>
                     <div class="col">
-                        <div class="slot green-dashed" id="slot-7" onclick="placeCard(7)">빈 공간 8</div>
+                        <div class="slot green-dashed" id="slot-7" onclick="handleSlotClick(7)">빈 공간 8</div>
                         <div class="slot home-tile">우리집</div>
                     </div>
                 </div>
 
                 <div class="quadrant">
                     <div class="col">
-                        <div class="slot green-dashed" id="slot-8" onclick="placeCard(8)">빈 공간 9</div>
-                        <div class="slot green-dashed" id="slot-9" onclick="placeCard(9)">빈 공간 10</div>
+                        <div class="slot green-dashed" id="slot-8" onclick="handleSlotClick(8)">빈 공간 9</div>
+                        <div class="slot green-dashed" id="slot-9" onclick="handleSlotClick(9)">빈 공간 10</div>
                     </div>
                     <div class="col">
-                        <div class="slot grey-dashed" id="slot-10" onclick="placeCard(10)">빈 공간 11</div>
-                        <div class="slot grey-dashed" id="slot-11" onclick="placeCard(11)">빈 공간 12</div>
-                        <div class="slot grey-dashed" id="slot-12" onclick="placeCard(12)">빈 공간 13</div>
+                        <div class="slot grey-dashed" id="slot-10" onclick="handleSlotClick(10)">빈 공간 11</div>
+                        <div class="slot grey-dashed" id="slot-11" onclick="handleSlotClick(11)">빈 공간 12</div>
+                        <div class="slot grey-dashed" id="slot-12" onclick="handleSlotClick(12)">빈 공간 13</div>
                     </div>
                 </div>
 
                 <div class="quadrant">
                     <div class="col">
-                        <div class="slot grey-dashed" id="slot-13" onclick="placeCard(13)">빈 공간 14</div>
-                        <div class="slot grey-dashed" id="slot-14" onclick="placeCard(14)">빈 공간 15</div>
+                        <div class="slot grey-dashed" id="slot-13" onclick="handleSlotClick(13)">빈 공간 14</div>
+                        <div class="slot grey-dashed" id="slot-14" onclick="handleSlotClick(14)">빈 공간 15</div>
                     </div>
                     <div class="col"></div>
                 </div>
@@ -180,6 +180,9 @@
     </div>
 
     <script>
+        // 교사 전용 비밀번호 (필요시 변경 가능)
+        const TEACHER_PIN = "1234";
+
         const firebaseConfig = {
             apiKey: "AIzaSyCDSJdGeG7TV1G0TJkV2JmwPiVLBwcP9ms",
             authDomain: "giga01-4bbd9.firebaseapp.com",
@@ -235,14 +238,23 @@
             });
         }
 
-        // 모둠 카드 수량 초기화 함수
+        // 교사 전용 모둠 카드 초기화 (비밀번호 확인)
         function resetCurrentGroupCards() {
             if(!currentGroup) return;
+            
+            const inputPin = prompt("🔒 교사 인증: 비밀번호를 입력하세요.");
+            if(inputPin === null) return; // 취소 누른 경우
+            
+            if(inputPin !== TEACHER_PIN) {
+                alert("❌ 비밀번호가 올바르지 않습니다.");
+                return;
+            }
+
             const groupNumStr = currentGroup.replace('group_', '');
-            if(confirm(`${groupNumStr}모둠의 공유 카드를 모두 초기화하시겠습니까?`)) {
+            if(confirm(`정말로 ${groupNumStr}모둠의 공유 카드를 모두 초기화하시겠습니까?`)) {
                 db.ref(`groups/${currentGroup}/cards`).set(initialCards, (error) => {
                     if(!error) {
-                        alert(`${groupNumStr}모둠 카드가 처음 상태로 초기화되었습니다!`);
+                        alert(`${groupNumStr}모둠 카드가 처음 상태로 성공적으로 초기화되었습니다!`);
                     }
                 });
             }
@@ -280,13 +292,33 @@
             }
         }
 
-        function placeCard(index) {
-            if(!selectedCard) {
-                alert('왼쪽 카드 목록에서 먼저 카드를 선택해주세요!');
+        // 보드판 슬롯 클릭 핸들러 (배치 & 회수/교체)
+        function handleSlotClick(index) {
+            // 1. 이미 카드가 놓여있는 경우 -> 카드 회수 및 교체 기능
+            if(myBoard[index] !== null) {
+                const removedCard = myBoard[index];
+                if(confirm(`'${removedCard.name}' 카드를 빼서 카드덱으로 되돌리시겠습니까?`)) {
+                    // Firebase 모둠 수량 1개 다시 플러스(+)
+                    const targetRef = db.ref(`groups/${currentGroup}/cards/${removedCard.color}/${removedCard.name}`);
+                    targetRef.transaction((currentCount) => {
+                        return (currentCount || 0) + 1;
+                    });
+
+                    // 보드판 비우기 및 디자인 원상복구
+                    myBoard[index] = null;
+                    const slot = document.getElementById(`slot-${index}`);
+                    const isGreenSlot = [0, 7, 8, 9].includes(index);
+                    slot.className = `slot ${isGreenSlot ? 'green-dashed' : 'grey-dashed'}`;
+                    slot.innerText = `빈 공간 ${index + 1}`;
+
+                    calculateScore();
+                }
                 return;
             }
-            if(myBoard[index] !== null) {
-                alert('이미 카드가 배치된 위치입니다.');
+
+            // 2. 빈 공간에 새 카드를 배치하는 경우
+            if(!selectedCard) {
+                alert('왼쪽 카드 목록에서 먼저 카드를 선택해주세요!');
                 return;
             }
 
@@ -296,6 +328,7 @@
             slot.className = `slot placed-${selectedCard.color}`;
             slot.innerText = `${selectedCard.name}\n(${selectedCard.points}점)`;
 
+            // Firebase 모둠 수량 1개 마이너스(-)
             const targetRef = db.ref(`groups/${currentGroup}/cards/${selectedCard.color}/${selectedCard.name}`);
             targetRef.transaction((currentCount) => {
                 return (currentCount || 1) - 1;
