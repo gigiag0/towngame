@@ -14,13 +14,14 @@
         body { background-color: #e3f2fd; margin: 0; padding: 15px; }
 
         .header { text-align: center; margin-bottom: 15px; }
-        .header h2 { margin: 5px 0; color: #1565c0; font-size: 30px; letter-spacing: 1px; }
+        .header h2 { margin: 5px 0; color: #1565c0; font-size: 30px; }
 
-        .group-select-container { background: white; padding: 15px; border-radius: 16px; text-align: center; max-width: 700px; margin: 0 auto 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
-        .group-btn { padding: 8px 18px; margin: 4px; border: 2px solid #1976d2; background: white; color: #1976d2; border-radius: 20px; cursor: pointer; font-size: 18px; transition: all 0.2s; }
-        .group-btn.active { background: #1976d2; color: white; }
-        .group-btn:disabled { opacity: 0.5; cursor: not-allowed; border-color: #ccc; color: #777; }
-        .group-btn.active:disabled { opacity: 1.0; background: #1565c0; color: white; border-color: #1565c0; }
+        /* 학생 접속 정보 입력창 */
+        .login-container { background: white; padding: 20px; border-radius: 16px; text-align: center; max-width: 450px; margin: 20px auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .login-container select, .login-container input { padding: 10px; font-size: 18px; border: 2px solid #1976d2; border-radius: 10px; margin: 8px 0; width: 80%; text-align: center; }
+        .login-container button { padding: 10px 25px; background: #1976d2; color: white; border: none; border-radius: 10px; font-size: 18px; cursor: pointer; margin-top: 10px; }
+
+        .user-info-bar { background: white; padding: 10px 20px; border-radius: 12px; text-align: center; max-width: 1200px; margin: 0 auto 15px; font-size: 20px; color: #1565c0; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
 
         .main-layout { display: flex; flex-direction: column; gap: 20px; max-width: 1200px; margin: 0 auto; }
         @media (min-width: 950px) { .main-layout { flex-direction: row; } }
@@ -92,14 +93,26 @@
         <h2>🏡 근린환경 조성하기</h2>
     </div>
 
-    <div class="group-select-container">
-        <span id="group-title-text" style="font-size: 19px;">소속 모둠을 선택하세요:</span><br>
-        <div id="group-btns" style="margin-top:8px;"></div>
+    <!-- 로그인 화면 -->
+    <div class="login-container" id="login-box">
+        <h3>모둠과 이름을 입력하세요</h3>
+        <select id="group-select">
+            <option value="1모둠">1모둠</option>
+            <option value="2모둠">2모둠</option>
+            <option value="3모둠">3모둠</option>
+            <option value="4모둠">4모둠</option>
+            <option value="5모둠">5모둠</option>
+            <option value="6모둠">6모둠</option>
+        </select><br>
+        <input type="text" id="student-name" placeholder="이름 (예: 홍길동)"><br>
+        <button onclick="startApp()">게임 시작하기</button>
     </div>
+
+    <div class="user-info-bar" id="user-bar" style="display:none;"></div>
 
     <div class="main-layout" id="game-area" style="display:none;">
         <div class="card-deck-section">
-            <h4 style="margin:0 0 10px 0; font-size:19px; color:#333;">🃏 모둠 공유 카드덱</h4>
+            <h4 style="margin:0 0 10px 0; font-size:19px; color:#333;">🃏 나만의 카드덱</h4>
             <div class="tabs">
                 <button class="tab-btn tab-purple active" onclick="switchTab('purple')">보라<br>(주사위 2~5)</button>
                 <button class="tab-btn tab-blue" onclick="switchTab('blue')">파랑<br>(주사위 6~8)</button>
@@ -185,51 +198,42 @@
             }
         };
 
-        let currentGroup = null;
+        let studentId = null;
+        let studentGroup = "";
+        let studentName = "";
         let activeTab = 'purple';
         let selectedCard = null; 
         let myBoard = Array(19).fill(null);
-        let groupCardCounts = {};
+        let myCards = JSON.parse(JSON.stringify(initialCards));
 
-        const groupBtnsDiv = document.getElementById('group-btns');
-        for(let i=1; i<=6; i++) {
-            const btn = document.createElement('button');
-            btn.className = 'group-btn';
-            btn.id = `g-btn-${i}`;
-            btn.innerText = `${i}모둠`;
-            btn.onclick = () => selectGroup(i);
-            groupBtnsDiv.appendChild(btn);
-        }
+        function startApp() {
+            studentGroup = document.getElementById('group-select').value;
+            studentName = document.getElementById('student-name').value.trim();
 
-        function selectGroup(groupNum) {
-            currentGroup = `group_${groupNum}`;
-            
-            for(let i=1; i<=6; i++) {
-                const btn = document.getElementById(`g-btn-${i}`);
-                btn.disabled = true;
-                if(i === groupNum) btn.classList.add('active');
+            if(!studentName) {
+                alert('이름을 입력해주세요!');
+                return;
             }
 
-            document.getElementById('group-title-text').innerText = `현재 접속: [${groupNum}모둠]`;
+            studentId = `${studentGroup}_${studentName}`;
+
+            document.getElementById('login-box').style.display = 'none';
+            document.getElementById('user-bar').style.display = 'block';
+            document.getElementById('user-bar').innerText = `👤 [${studentGroup}] ${studentName} 학생의 게임판`;
             document.getElementById('game-area').style.display = 'flex';
 
-            // 카드덱 수량 실시간 수신
-            db.ref(`groups/${currentGroup}/cards`).on('value', (snapshot) => {
+            // Firebase 실시간 동기화 (개인별)
+            db.ref(`students/${studentId}`).on('value', (snapshot) => {
                 const data = snapshot.val();
                 if(!data) {
-                    db.ref(`groups/${currentGroup}/cards`).set(initialCards);
+                    saveToFirebase();
                 } else {
-                    groupCardCounts = data;
+                    myCards = data.cards || JSON.parse(JSON.stringify(initialCards));
+                    myBoard = data.board || Array(19).fill(null);
                     renderCards();
+                    renderBoardUI();
+                    calculateScore();
                 }
-            });
-
-            // 내 모둠의 게임판 실시간 동기화 (교사가 초기화하거나 타 기기 조작 시 자동 업데이트)
-            db.ref(`groups/${currentGroup}/board`).on('value', (snapshot) => {
-                const data = snapshot.val();
-                myBoard = data || Array(19).fill(null);
-                renderBoardUI();
-                calculateScore();
             });
         }
 
@@ -247,7 +251,7 @@
         function renderCards() {
             const container = document.getElementById('card-list');
             container.innerHTML = '';
-            const category = groupCardCounts[activeTab] || initialCards[activeTab];
+            const category = myCards[activeTab] || initialCards[activeTab];
             const pointMap = { purple: 1, blue: 2, red: 3, green: 4 };
 
             for(let name in category) {
@@ -290,16 +294,16 @@
         function handleSlotClick(index, slotType) {
             if(myBoard[index] !== null) {
                 const removedCard = myBoard[index];
-                if(confirm(`'${removedCard.name}' 카드를 회수하여 카드덱으로 돌려보내시겠습니까?`)) {
-                    db.ref(`groups/${currentGroup}/cards/${removedCard.color}/${removedCard.name}`).transaction((count) => (count || 0) + 1);
+                if(confirm(`'${removedCard.name}' 카드를 회수하시겠습니까?`)) {
+                    myCards[removedCard.color][removedCard.name] = (myCards[removedCard.color][removedCard.name] || 0) + 1;
                     myBoard[index] = null;
-                    saveBoardToFirebase();
+                    saveToFirebase();
                 }
                 return;
             }
 
             if(!selectedCard) {
-                alert('왼쪽 카드 목록에서 배치할 카드를 먼저 선택해주세요!');
+                alert('카드 목록에서 배치할 카드를 선택해주세요!');
                 return;
             }
 
@@ -313,14 +317,9 @@
             }
 
             myBoard[index] = selectedCard;
-            db.ref(`groups/${currentGroup}/cards/${selectedCard.color}/${selectedCard.name}`).transaction((count) => (count || 1) - 1);
-            saveBoardToFirebase();
+            myCards[selectedCard.color][selectedCard.name] -= 1;
             selectedCard = null;
-        }
-
-        function saveBoardToFirebase() {
-            if(!currentGroup) return;
-            db.ref(`groups/${currentGroup}/board`).set(myBoard);
+            saveToFirebase();
         }
 
         function calculateScore() {
@@ -362,17 +361,21 @@
 
             const totalScore = baseScore + bonusScore;
             document.getElementById('my-score').innerText = totalScore;
-            document.getElementById('score-detail').innerText = `기본 점수: ${baseScore}점 | 보너스 점수: ${bonusScore}점 (${bonusList.join(', ') || '적용 항목 없음'})`;
+            document.getElementById('score-detail').innerText = `기본: ${baseScore}점 | 보너스: ${bonusScore}점 (${bonusList.join(', ') || '없음'})`;
 
-            // 총점 정보를 교사 페이지 모니터링용으로 Firebase에 업데이트
-            if(currentGroup) {
-                db.ref(`groups/${currentGroup}/scoreInfo`).set({
-                    total: totalScore,
-                    base: baseScore,
-                    bonus: bonusScore,
-                    bonusDetails: bonusList.join(', ') || '없음'
-                });
-            }
+            return { total: totalScore, base: baseScore, bonus: bonusScore, bonusDetails: bonusList.join(', ') || '없음' };
+        }
+
+        function saveToFirebase() {
+            if(!studentId) return;
+            const scoreInfo = calculateScore();
+            db.ref(`students/${studentId}`).set({
+                group: studentGroup,
+                name: studentName,
+                board: myBoard,
+                cards: myCards,
+                scoreInfo: scoreInfo
+            });
         }
     </script>
 </body>
