@@ -55,7 +55,7 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.08); aspect-ratio: 1 / 1; user-select: none;
         }
 
-        /* 초록 카드 (가로 2칸 직사각형 - 정사각형 2개 합친 크기) */
+        /* 초록 카드 (가로 2칸 직사각형) */
         .card-item.is-green {
             grid-column: span 2;
             aspect-ratio: 2.1 / 1;
@@ -260,11 +260,9 @@
             document.getElementById('user-bar').innerText = `👤 [${studentGroup}] ${studentName} 학생의 게임판`;
             document.getElementById('game-area').style.display = 'flex';
 
-            // 1. 모둠 공유 카드 덱 실시간 동기화
             db.ref(`groups/${safeGroup}/cards`).on('value', (snapshot) => {
                 const groupCards = snapshot.val();
                 if (!groupCards) {
-                    // 모둠 최초 접속자가 카드덱 데이터 생성
                     db.ref(`groups/${safeGroup}/cards`).set(initialCards);
                     sharedGroupCards = JSON.parse(JSON.stringify(initialCards));
                 } else {
@@ -273,7 +271,6 @@
                 renderCards();
             });
 
-            // 2. 개별 학생 보드판 실시간 동기화
             db.ref(`students/${studentId}`).on('value', (snapshot) => {
                 const data = snapshot.val();
                 if(data && data.board) {
@@ -314,7 +311,6 @@
                 
                 if(count > 0) {
                     cardEl.onclick = () => {
-                        // 선택 토글 기능: 이미 선택된 카드를 누르면 취소, 아니면 해당 카드로 즉시 변경
                         if (selectedCard && selectedCard.name === name && selectedCard.color === activeTab) {
                             selectedCard = null;
                         } else {
@@ -336,7 +332,8 @@
 
                 if(card) {
                     slot.className = `slot ${slotType === 'green' ? 'long-green-slot' : 'square-slot'} placed-${card.color}`;
-                    slot.innerHTML = `<span>${card.name}</span><br><span style="font-size:11px; opacity:0.8;">(${card.points}점)</span>`;
+                    // 카드 이름과 똑같은 글자 크기로 아래 줄에 점수 표시
+                    slot.innerHTML = `<span>${card.name}</span><br>(${card.points}점)`;
                 } else {
                     slot.className = `slot ${slotType === 'green' ? 'long-green-slot' : 'square-slot'}`;
                     slot.innerText = slotType === 'green' ? '초록 카드 전용 칸' : '';
@@ -345,12 +342,10 @@
         }
 
         function handleSlotClick(index, slotType) {
-            // 카드가 이미 놓여진 위치를 누른 경우 (회수)
             if(myBoard[index] !== null) {
                 const removedCard = myBoard[index];
                 const cleanName = removedCard.name.replace(/<br>/g, ' ');
                 if(confirm(`'${cleanName}' 카드를 회수하시겠습니까?`)) {
-                    // 모둠 공유 카드 개수 +1 증가
                     sharedGroupCards[removedCard.color][removedCard.name] = (sharedGroupCards[removedCard.color][removedCard.name] || 0) + 1;
                     myBoard[index] = null;
                     saveToFirebase();
@@ -372,10 +367,9 @@
                 return;
             }
 
-            // 보드에 카드 놓기
             myBoard[index] = selectedCard;
             sharedGroupCards[selectedCard.color][selectedCard.name] -= 1;
-            selectedCard = null; // 카드 선택 초기화
+            selectedCard = null;
             saveToFirebase();
         }
 
@@ -431,10 +425,8 @@
             if(!studentId || !safeGroup) return;
             const scoreInfo = calculateScore();
 
-            // 1. 모둠 공유 카드 데이터 저장 (모둠원 전체 실시간 반영)
             db.ref(`groups/${safeGroup}/cards`).set(sharedGroupCards);
 
-            // 2. 학생 개인 보드 및 점수 저장
             db.ref(`students/${studentId}`).set({
                 group: studentGroup,
                 name: studentName,
