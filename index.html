@@ -3,26 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>근린환경 조성하기 (모둠 실시간 게임)</title>
+    <title>주거와 주생활 문화 - 근린환경 조성하기</title>
     <!-- Firebase SDK (v8 CDN) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
         * { box-sizing: border-box; font-family: 'Pretendard', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: #e3f2fd; margin: 0; padding: 15px; }
-        .header { text-align: center; margin-bottom: 10px; }
-        .header h2 { margin: 5px 0; color: #1565c0; }
-        
+
         .group-select-container { background: white; padding: 12px; border-radius: 12px; text-align: center; max-width: 600px; margin: 0 auto 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .group-btn { padding: 8px 16px; margin: 4px; border: 2px solid #1976d2; background: white; color: #1976d2; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 14px; }
         .group-btn.active { background: #1976d2; color: white; }
 
-        /* 초기화 버튼 스타일 (교사 전용) */
         .reset-btn { margin-top: 8px; padding: 6px 12px; background: #ffebee; border: 1px solid #ef5350; color: #c62828; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; }
         .reset-btn:hover { background: #ffcdd2; }
 
-        .main-layout { display: flex; flex-direction: column; gap: 15px; max-width: 1100px; margin: 0 auto; }
-        @media (min-width: 850px) { .main-layout { flex-direction: row; } }
+        .main-layout { display: flex; flex-direction: column; gap: 15px; max-width: 1150px; margin: 0 auto; }
+        @media (min-width: 900px) { .main-layout { flex-direction: row; } }
 
         /* 카드 선택 영역 */
         .card-deck-section { flex: 1; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
@@ -34,37 +31,42 @@
         .tab-red { background: #ffcdd2; color: #b71c1c; }
         .tab-green { background: #c8e6c9; color: #1b5e20; }
 
-        .card-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; max-height: 420px; overflow-y: auto; padding: 5px; }
-        .card-item { padding: 10px 4px; border-radius: 8px; text-align: center; font-size: 12px; font-weight: bold; border: 2px solid transparent; cursor: pointer; position: relative; }
-        .card-item.selected { border-color: #000 !important; box-shadow: 0 0 8px rgba(0,0,0,0.4); transform: scale(1.05); }
+        .card-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; max-height: 480px; overflow-y: auto; padding: 5px; }
+        .card-list.green-mode { grid-template-columns: 1fr; } /* 초록 카드는 길게 표시 */
+
+        .card-item { padding: 10px 6px; border-radius: 8px; text-align: center; font-size: 12px; font-weight: bold; border: 2px solid transparent; cursor: pointer; position: relative; word-break: keep-all; line-height: 1.3; }
+        .card-item.selected { border-color: #000 !important; box-shadow: 0 0 8px rgba(0,0,0,0.5); transform: scale(1.03); }
         .card-item.disabled { opacity: 0.25; cursor: not-allowed; background: #eee !important; border-color: #ccc !important; }
         .badge { position: absolute; top: 2px; right: 4px; background: rgba(0,0,0,0.6); color: white; border-radius: 10px; padding: 1px 5px; font-size: 10px; }
 
-        /* 보드판 영역 */
-        .board-section { flex: 1.3; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        /* 보드판 영역 (원본 교재 스타일) */
+        .board-section { flex: 1.3; background: #b3e5fc; padding: 15px; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .board-header-title { font-size: 13px; font-weight: bold; color: #000; margin-bottom: 8px; }
         
         .real-board {
             position: relative;
-            background: linear-gradient(to bottom, #bbdefb 0%, #bbdefb 50%, #c8e6c9 50%, #c8e6c9 100%);
-            border-radius: 16px;
+            background: #e0f7fa;
+            border-radius: 20px;
             padding: 12px;
             display: grid;
             grid-template-columns: 1fr 1fr;
             grid-template-rows: 1fr 1fr;
-            gap: 24px;
+            gap: 20px;
             border: 4px solid white;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+            overflow: hidden;
         }
 
-        .road-v { position: absolute; top: 0; bottom: 0; left: calc(50% - 12px); width: 24px; background: #424242; z-index: 1; border-left: 2px dashed #fff; border-right: 2px dashed #fff; }
-        .road-h { position: absolute; left: 0; right: 0; top: calc(50% - 12px); height: 24px; background: #424242; z-index: 1; border-top: 2px dashed #fff; border-bottom: 2px dashed #fff; }
+        /* 아스팔트 도로 */
+        .road-v { position: absolute; top: 0; bottom: 0; left: calc(50% - 14px); width: 28px; background: #424242; z-index: 1; border-left: 2px dashed #fff; border-right: 2px dashed #fff; }
+        .road-h { position: absolute; left: 0; right: 0; top: calc(50% - 14px); height: 28px; background: #424242; z-index: 1; border-top: 2px dashed #fff; border-bottom: 2px dashed #fff; }
 
         .quadrant { z-index: 2; display: flex; gap: 8px; }
-        .col { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+        .col { display: flex; flex-direction: column; gap: 8px; flex: 1; }
 
+        /* 슬롯 기본 (정사각형 vs 긴 직사각형) */
         .slot {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -74,30 +76,32 @@
             cursor: pointer;
             transition: all 0.2s;
             padding: 4px;
-            white-space: pre-line;
+            word-break: keep-all;
+            line-height: 1.2;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        .slot.grey-dashed { border: 2px dashed #757575; min-height: 48px; }
-        .slot.green-dashed { border: 2px dashed #2e7d32; min-height: 65px; }
+        /* 일반 정사각형 슬롯 */
+        .slot.square-slot { border: 2.5px dashed #757575; aspect-ratio: 1 / 1; }
+        
+        /* 초록색 전용 긴 슬롯 (2칸 분량 높이) */
+        .slot.long-green-slot { border: 2.5px dashed #43a047; flex: 2; }
 
+        /* 카드 놓였을 때 스타일 */
         .slot.placed-purple { background-color: #e1bee7 !important; border: 2px solid #8e24aa !important; color: #4a148c; }
         .slot.placed-blue { background-color: #bbdefb !important; border: 2px solid #1e88e5 !important; color: #0d47a1; }
         .slot.placed-red { background-color: #ffcdd2 !important; border: 2px solid #e53935 !important; color: #b71c1c; }
         .slot.placed-green { background-color: #c8e6c9 !important; border: 2px solid #43a047 !important; color: #1b5e20; }
 
-        .home-tile { background: #81c784 !important; border: 2px solid #2e7d32 !important; color: white !important; font-size: 14px; font-weight: bold; cursor: default; min-height: 48px; }
+        /* 원본 우리집 타일 */
+        .home-tile { background: #81c784 !important; border: 2px solid #2e7d32 !important; color: white !important; font-size: 15px; font-weight: bold; cursor: default; aspect-ratio: 1 / 1; }
 
-        .score-box { margin-top: 15px; padding: 12px; background: #fffde7; border-radius: 8px; border: 1px solid #fff59d; text-align: center; }
-        .score-total { font-size: 22px; font-weight: bold; color: #f57f17; }
+        .score-box { margin-top: 15px; padding: 12px; background: #fff; border-radius: 10px; border: 1px solid #fff59d; text-align: center; }
+        .score-total { font-size: 20px; font-weight: bold; color: #1565c0; }
         .score-breakdown { font-size: 11px; color: #555; margin-top: 4px; line-height: 1.4; }
     </style>
 </head>
 <body>
-
-    <div class="header">
-        <h2>🏡 근린환경 조성하기</h2>
-    </div>
 
     <!-- 모둠 선택 및 교사 전용 초기화 영역 -->
     <div class="group-select-container">
@@ -109,6 +113,7 @@
     </div>
 
     <div class="main-layout" id="game-area" style="display:none;">
+        <!-- 공유 카드덱 -->
         <div class="card-deck-section">
             <h4 style="margin:0 0 10px 0;">🃏 모둠 공유 카드덱</h4>
             <div class="tabs">
@@ -120,55 +125,64 @@
             <div id="card-list" class="card-list"></div>
         </div>
 
+        <!-- 게임판 (원본 교재 비율 반영) -->
         <div class="board-section">
-            <h4 style="margin:0 0 6px 0;">🗺️ 나의 마을 보드판</h4>
-            <p style="font-size:11px; color:#666; margin:0 0 10px 0;">* 카드를 눌러 배치하며, <b>배치된 카드를 다시 누르면 회수</b>할 수 있습니다.</p>
+            <div class="board-header-title">
+                주거와 주생활 문화_더불어 살아가는 주생활 문화<br>
+                <small style="color:#555;">(용빈쌤과 함께하는 기술가정)</small>
+            </div>
             
             <div class="real-board">
                 <div class="road-v"></div>
                 <div class="road-h"></div>
 
+                <!-- 1분면 (좌상) -->
                 <div class="quadrant">
                     <div class="col">
-                        <div class="slot green-dashed" id="slot-0" onclick="handleSlotClick(0)">빈 공간 1</div>
+                        <div class="slot long-green-slot" id="slot-0" onclick="handleSlotClick(0, 'green')">초록 카드<br>전용 칸</div>
                     </div>
                     <div class="col">
-                        <div class="slot grey-dashed" id="slot-1" onclick="handleSlotClick(1)">빈 공간 2</div>
-                        <div class="slot grey-dashed" id="slot-2" onclick="handleSlotClick(2)">빈 공간 3</div>
-                        <div class="slot grey-dashed" id="slot-3" onclick="handleSlotClick(3)">빈 공간 4</div>
+                        <div class="slot square-slot" id="slot-1" onclick="handleSlotClick(1, 'square')"></div>
+                        <div class="slot square-slot" id="slot-2" onclick="handleSlotClick(2, 'square')"></div>
+                        <div class="slot square-slot" id="slot-3" onclick="handleSlotClick(3, 'square')"></div>
                     </div>
                 </div>
 
+                <!-- 2분면 (우상) -->
                 <div class="quadrant">
                     <div class="col">
-                        <div class="slot grey-dashed" id="slot-4" onclick="handleSlotClick(4)">빈 공간 5</div>
-                        <div class="slot grey-dashed" id="slot-5" onclick="handleSlotClick(5)">빈 공간 6</div>
-                        <div class="slot grey-dashed" id="slot-6" onclick="handleSlotClick(6)">빈 공간 7</div>
+                        <div class="slot square-slot" id="slot-4" onclick="handleSlotClick(4, 'square')"></div>
+                        <div class="slot square-slot" id="slot-5" onclick="handleSlotClick(5, 'square')"></div>
+                        <div class="slot square-slot" id="slot-6" onclick="handleSlotClick(6, 'square')"></div>
                     </div>
                     <div class="col">
-                        <div class="slot green-dashed" id="slot-7" onclick="handleSlotClick(7)">빈 공간 8</div>
+                        <div class="slot long-green-slot" id="slot-7" onclick="handleSlotClick(7, 'green')">초록 카드<br>전용 칸</div>
                         <div class="slot home-tile">우리집</div>
                     </div>
                 </div>
 
+                <!-- 3분면 (좌하) -->
                 <div class="quadrant">
                     <div class="col">
-                        <div class="slot green-dashed" id="slot-8" onclick="handleSlotClick(8)">빈 공간 9</div>
-                        <div class="slot green-dashed" id="slot-9" onclick="handleSlotClick(9)">빈 공간 10</div>
+                        <div class="slot long-green-slot" id="slot-8" onclick="handleSlotClick(8, 'green')">초록 카드<br>전용 칸</div>
                     </div>
                     <div class="col">
-                        <div class="slot grey-dashed" id="slot-10" onclick="handleSlotClick(10)">빈 공간 11</div>
-                        <div class="slot grey-dashed" id="slot-11" onclick="handleSlotClick(11)">빈 공간 12</div>
-                        <div class="slot grey-dashed" id="slot-12" onclick="handleSlotClick(12)">빈 공간 13</div>
+                        <div class="slot square-slot" id="slot-9" onclick="handleSlotClick(9, 'square')"></div>
+                        <div class="slot square-slot" id="slot-10" onclick="handleSlotClick(10, 'square')"></div>
+                        <div class="slot square-slot" id="slot-11" onclick="handleSlotClick(11, 'square')"></div>
                     </div>
                 </div>
 
+                <!-- 4분면 (우하) -->
                 <div class="quadrant">
                     <div class="col">
-                        <div class="slot grey-dashed" id="slot-13" onclick="handleSlotClick(13)">빈 공간 14</div>
-                        <div class="slot grey-dashed" id="slot-14" onclick="handleSlotClick(14)">빈 공간 15</div>
+                        <div class="slot square-slot" id="slot-12" onclick="handleSlotClick(12, 'square')"></div>
+                        <div class="slot square-slot" id="slot-13" onclick="handleSlotClick(13, 'square')"></div>
+                        <div class="slot square-slot" id="slot-14" onclick="handleSlotClick(14, 'square')"></div>
                     </div>
-                    <div class="col"></div>
+                    <div class="col">
+                        <div class="slot long-green-slot" id="slot-15" onclick="handleSlotClick(15, 'green')">초록 카드<br>전용 칸</div>
+                    </div>
                 </div>
             </div>
 
@@ -180,8 +194,7 @@
     </div>
 
     <script>
-        // 교사 전용 비밀번호 (필요시 변경 가능)
-        const TEACHER_PIN = "1234";
+        const TEACHER_PIN = "6363";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCDSJdGeG7TV1G0TJkV2JmwPiVLBwcP9ms",
@@ -196,17 +209,28 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // 원본 이미지 100% 동일 카드 데이터
         const initialCards = {
-            purple: { '독서실':1, '놀이터':2, '산책로':1, '주차공간':1, '우체국':1, '병원':3, '약국':2, '유치원':1, '버스정류장':1, '음식점':2, '중학교':2, '학원':2, '카페':1, '초등학교':2, 'PC방':1, '세탁소':2, '노래방':1, '고등학교':1, '편의점':1 },
-            blue: { '도서관':2, '소방서':1, '경찰서':1, '옥상정원':2, '보건소':1, '과일가게':1, '문화센터':1, '옷가게':1, '문구점':1, '대학교':1, '지하철역':2, '경로당':1, '볼링장':1, '카센터':1, '산':2, '공원':2, '주얼리샵':1, '축구장':1, '화장품가게':1, '대형마트':2, '농구장':1, '테니스장':1, '배드민턴장':1, '키즈카페':1, '헬스클럽':1, '빵가게':1, '네일아트샵':1, '다잇소':1, '핸드폰가게':1 },
+            purple: { '스터디카페':1, '놀이터':2, '주차공간':1, '우체국':1, '병원':3, '약국':2, '유치원':1, '버스정류장':1, '음식점':2, '중학교':2, '학원':2, '카페':1, '초등학교':2, 'PC방':1, '세탁소':2, '노래방':1, '고등학교':1, '편의점':1 },
+            blue: { '도서관':2, '소방서':1, '경찰서':1, '옥상정원':2, '보건소':1, '과일가게':1, '문화센터':1, '옷가게':1, '문구점':1, '대학교':1, '지하철역':2, '경로당':1, '볼링장':1, '카센터':1, '산':2, '공원':2, '주얼리샵':1, '축구장':1, '화장품가게':1, '대형마트':2, '농구장':1, '테니스장':1, '배드민턴장':1, '키즈카페':1, '헬스장':1, '빵집':1, '네일아트샵':1, '다이소':1, '핸드폰가게':1 },
             red: { '절':1, '성당':1, '교회':1, '생태연못':1, '기차역':1, '시장':1, '박물관':1, '미술관':1, '과학관':1, '놀이동산':1, '방송국':1, '백화점':1, '계곡':1, '바다':1, '유적지':1, '야구경기장':1, '전망대':1, '발전소':1 },
-            green: { '지역 공동체 활동':1, '층간 소음 배려':1, '주차 공간 배려':1, '자연 소재 건축물':1, '주거 공용 공간':1, '자연 에너지 사용':1, '이웃 돕기 활동':1, '쓰레기 분리 배출':1, '친환경 공간 조성':1 }
+            green: { 
+                '지역 공동체 활동에 참여해요': 1, 
+                '층간 소음을 일으키지 않고 이웃의 생활공간을 배려해요': 1, 
+                '주차 공간을 배려해서 사용해요': 1, 
+                '자연 소재를 사용한 건축물': 1, 
+                '주거 공용 공간을 만들어요': 1, 
+                '자연 에너지 사용해요': 1, 
+                '이웃 돕기 활동에 참여해요': 1, 
+                '쓰레기를 분리 배출해요': 1, 
+                '옥상 정원 등 친환경 공간을 조성해요': 1 
+            }
         };
 
         let currentGroup = null;
         let activeTab = 'purple';
         let selectedCard = null; 
-        let myBoard = Array(15).fill(null);
+        let myBoard = Array(16).fill(null);
         let groupCardCounts = {};
 
         const groupBtnsDiv = document.getElementById('group-btns');
@@ -238,13 +262,10 @@
             });
         }
 
-        // 교사 전용 모둠 카드 초기화 (비밀번호 확인)
         function resetCurrentGroupCards() {
             if(!currentGroup) return;
-            
             const inputPin = prompt("🔒 교사 인증: 비밀번호를 입력하세요.");
-            if(inputPin === null) return; // 취소 누른 경우
-            
+            if(inputPin === null) return;
             if(inputPin !== TEACHER_PIN) {
                 alert("❌ 비밀번호가 올바르지 않습니다.");
                 return;
@@ -253,9 +274,7 @@
             const groupNumStr = currentGroup.replace('group_', '');
             if(confirm(`정말로 ${groupNumStr}모둠의 공유 카드를 모두 초기화하시겠습니까?`)) {
                 db.ref(`groups/${currentGroup}/cards`).set(initialCards, (error) => {
-                    if(!error) {
-                        alert(`${groupNumStr}모둠 카드가 처음 상태로 성공적으로 초기화되었습니다!`);
-                    }
+                    if(!error) alert(`${groupNumStr}모둠 카드가 처음 상태로 초기화되었습니다!`);
                 });
             }
         }
@@ -264,6 +283,13 @@
             activeTab = color;
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelector(`.tab-${color}`).classList.add('active');
+            
+            const cardListEl = document.getElementById('card-list');
+            if(color === 'green') {
+                cardListEl.classList.add('green-mode');
+            } else {
+                cardListEl.classList.remove('green-mode');
+            }
             renderCards();
         }
 
@@ -292,47 +318,46 @@
             }
         }
 
-        // 보드판 슬롯 클릭 핸들러 (배치 & 회수/교체)
-        function handleSlotClick(index) {
-            // 1. 이미 카드가 놓여있는 경우 -> 카드 회수 및 교체 기능
+        // 슬롯 클릭 (카드 배치 및 회수 + 전용 구역 검증)
+        function handleSlotClick(index, slotType) {
+            // 1. 이미 배치된 카드 회수
             if(myBoard[index] !== null) {
                 const removedCard = myBoard[index];
-                if(confirm(`'${removedCard.name}' 카드를 빼서 카드덱으로 되돌리시겠습니까?`)) {
-                    // Firebase 모둠 수량 1개 다시 플러스(+)
-                    const targetRef = db.ref(`groups/${currentGroup}/cards/${removedCard.color}/${removedCard.name}`);
-                    targetRef.transaction((currentCount) => {
-                        return (currentCount || 0) + 1;
-                    });
-
-                    // 보드판 비우기 및 디자인 원상복구
+                if(confirm(`'${removedCard.name}' 카드를 회수하여 카드덱으로 돌려보내시겠습니까?`)) {
+                    db.ref(`groups/${currentGroup}/cards/${removedCard.color}/${removedCard.name}`).transaction((count) => (count || 0) + 1);
                     myBoard[index] = null;
+                    
                     const slot = document.getElementById(`slot-${index}`);
-                    const isGreenSlot = [0, 7, 8, 9].includes(index);
-                    slot.className = `slot ${isGreenSlot ? 'green-dashed' : 'grey-dashed'}`;
-                    slot.innerText = `빈 공간 ${index + 1}`;
-
+                    slot.className = `slot ${slotType === 'green' ? 'long-green-slot' : 'square-slot'}`;
+                    slot.innerText = slotType === 'green' ? '초록 카드\n전용 칸' : '';
                     calculateScore();
                 }
                 return;
             }
 
-            // 2. 빈 공간에 새 카드를 배치하는 경우
+            // 2. 새 카드 배치 시 검증
             if(!selectedCard) {
-                alert('왼쪽 카드 목록에서 먼저 카드를 선택해주세요!');
+                alert('왼쪽 카드 목록에서 배치할 카드를 먼저 선택해주세요!');
                 return;
             }
 
+            // [규칙 검증] 초록색 카드는 초록 전용 칸에만, 일반 카드는 정사각형 칸에만!
+            if(selectedCard.color === 'green' && slotType !== 'green') {
+                alert('⚠️ 초록색 카드는 길쭉한 초록 점선 칸에만 놓을 수 있습니다!');
+                return;
+            }
+            if(selectedCard.color !== 'green' && slotType === 'green') {
+                alert('⚠️ 일반 카드는 정사각형 회색 칸에만 놓을 수 있습니다!');
+                return;
+            }
+
+            // 배치 완료
             myBoard[index] = selectedCard;
             const slot = document.getElementById(`slot-${index}`);
-            
-            slot.className = `slot placed-${selectedCard.color}`;
+            slot.className = `slot ${slotType === 'green' ? 'long-green-slot' : 'square-slot'} placed-${selectedCard.color}`;
             slot.innerText = `${selectedCard.name}\n(${selectedCard.points}점)`;
 
-            // Firebase 모둠 수량 1개 마이너스(-)
-            const targetRef = db.ref(`groups/${currentGroup}/cards/${selectedCard.color}/${selectedCard.name}`);
-            targetRef.transaction((currentCount) => {
-                return (currentCount || 1) - 1;
-            });
+            db.ref(`groups/${currentGroup}/cards/${selectedCard.color}/${selectedCard.name}`).transaction((count) => (count || 1) - 1);
 
             selectedCard = null;
             calculateScore();
@@ -371,26 +396,26 @@
             }
 
             if(placed.includes('소방서') && placed.includes('경찰서')) { 
-                bonusScore += 10; bonusList.push('안전시설(10점)'); 
+                bonusScore += 10; bonusList.push('안전·치안시설(10점)'); 
             }
 
             if(placed.includes('버스정류장') && placed.includes('지하철역') && placed.includes('기차역')) { 
                 bonusScore += 15; bonusList.push('교통시설(15점)'); 
             }
 
-            const shopItems = ['화장품가게', '주얼리샵', '신발가게', '과일가게', '대형마트', '백화점', '다잇소', '빵가게', '옷가게'];
+            const shopItems = ['화장품가게', '주얼리샵', '신발가게', '과일가게', '대형마트', '백화점', '다이소', '빵집', '옷가게'];
             if(shopItems.filter(i => placed.includes(i)).length >= 4) { 
                 bonusScore += 15; bonusList.push('쇼핑시설(15점)'); 
             }
 
-            const cultureItems = ['박물관', '미술관', '과학관', '유적지', '헬스클럽', '테니스장', '농구장', '축구장', '배드민턴장'];
+            const cultureItems = ['박물관', '미술관', '과학관', '유적지', '헬스장', '테니스장', '농구장', '축구장', '배드민턴장'];
             if(cultureItems.filter(i => placed.includes(i)).length >= 3) { 
                 bonusScore += 10; bonusList.push('문화시설(10점)'); 
             }
 
             const ecoItems = ['산', '공원', '옥상정원', '계곡', '바다', '생태연못'];
             if(ecoItems.filter(i => placed.includes(i)).length >= 3) { 
-                bonusScore += 10; bonusList.push('친환경공간(10점)'); 
+                bonusScore += 10; bonusList.push('자연환경(10점)'); 
             }
 
             document.getElementById('my-score').innerText = baseScore + bonusScore;
