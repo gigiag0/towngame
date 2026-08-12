@@ -14,7 +14,7 @@
         .header { text-align: center; margin-bottom: 15px; }
         .header h2 { margin: 5px 0; color: #1565c0; font-size: 26px; }
 
-        /* 모둠 선택 및 교사 초기화 영역 */
+        /* 모둠 선택 및 교사 전용 전체 초기화 영역 */
         .group-select-container { background: white; padding: 15px; border-radius: 12px; text-align: center; max-width: 700px; margin: 0 auto 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .group-btn { padding: 8px 18px; margin: 4px; border: 2px solid #1976d2; background: white; color: #1976d2; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 15px; transition: all 0.2s; }
         .group-btn.active { background: #1976d2; color: white; }
@@ -27,7 +27,7 @@
         .main-layout { display: flex; flex-direction: column; gap: 20px; max-width: 1200px; margin: 0 auto; }
         @media (min-width: 950px) { .main-layout { flex-direction: row; } }
 
-        /* 카드 선택 영역 (카드 크기 및 모양 동일화) */
+        /* 카드 선택 영역 */
         .card-deck-section { flex: 1; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .tabs { display: flex; gap: 5px; margin-bottom: 12px; }
         .tab-btn { flex: 1; padding: 8px 2px; border: none; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; opacity: 0.6; line-height: 1.3; text-align: center; }
@@ -38,7 +38,7 @@
         .tab-green { background: #c8e6c9; color: #1b5e20; }
 
         .card-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 10px; max-height: 500px; overflow-y: auto; padding: 5px; }
-        .card-list.green-mode { grid-template-columns: 1fr; } /* 초록 카드는 가로 길쭉하게 */
+        .card-list.green-mode { grid-template-columns: repeat(2, 1fr); } /* 초록색 카드는 한 줄에 2개씩 */
 
         .card-item { 
             display: flex; align-items: center; justify-content: center; text-align: center;
@@ -47,33 +47,33 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.08);
         }
         .card-item.square-card { aspect-ratio: 1 / 1; }
-        .card-item.long-card { aspect-ratio: 2.2 / 1; font-size: 13px; }
+        .card-item.long-card { aspect-ratio: 2 / 1; font-size: 12px; }
 
         .card-item.selected { border-color: #000 !important; box-shadow: 0 0 10px rgba(0,0,0,0.5); transform: scale(1.04); z-index: 2; }
         .card-item.disabled { opacity: 0.25; cursor: not-allowed; background: #eee !important; border-color: #ccc !important; }
         .badge { position: absolute; top: 3px; right: 4px; background: rgba(0,0,0,0.65); color: white; border-radius: 10px; padding: 1px 6px; font-size: 10px; }
 
-        /* 게임판 영역 (가로형 및 도로 여백 적용) */
+        /* 게임판 영역 (도로 간격과 네모칸 사이 간격 동일화) */
         .board-section { flex: 1.4; background: #b3e5fc; padding: 18px; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         
         .real-board {
             position: relative;
             background: #e0f7fa;
             border-radius: 20px;
-            padding: 18px; /* 도로와의 여백 */
+            padding: 16px;
             display: grid;
             grid-template-columns: 1fr 1fr;
             grid-template-rows: 1fr 1fr;
-            gap: 30px; /* 십자로 도로 간격 */
+            gap: 40px; /* 도로 폭(24px) + 양쪽 여백(8px*2) = 40px 간격 */
             border: 4px solid white;
             overflow: hidden;
         }
 
-        /* 중앙 도로 */
-        .road-v { position: absolute; top: 0; bottom: 0; left: calc(50% - 15px); width: 30px; background: #424242; z-index: 1; border-left: 2px dashed #fff; border-right: 2px dashed #fff; }
-        .road-h { position: absolute; left: 0; right: 0; top: calc(50% - 15px); height: 30px; background: #424242; z-index: 1; border-top: 2px dashed #fff; border-bottom: 2px dashed #fff; }
+        /* 중앙 도로 (폭 24px, 양옆 여백 8px씩 확보) */
+        .road-v { position: absolute; top: 0; bottom: 0; left: calc(50% - 12px); width: 24px; background: #424242; z-index: 1; border-left: 2px dashed #fff; border-right: 2px dashed #fff; }
+        .road-h { position: absolute; left: 0; right: 0; top: calc(50% - 12px); height: 24px; background: #424242; z-index: 1; border-top: 2px dashed #fff; border-bottom: 2px dashed #fff; }
 
-        /* 4개 분면 Grid (각 분면은 3열 x 2행) */
+        /* 4개 분면 Grid (네모칸 사이 간격 8px) */
         .quadrant { z-index: 2; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap: 8px; }
 
         /* 슬롯 기본 스타일 */
@@ -103,7 +103,7 @@
         .slot.placed-red { background-color: #ffcdd2 !important; border: 2px solid #e53935 !important; color: #b71c1c; }
         .slot.placed-green { background-color: #c8e6c9 !important; border: 2px solid #43a047 !important; color: #1b5e20; }
 
-        /* 우리집 타일 (오른쪽 아래 4분면 도로 옆 위치) */
+        /* 우리집 타일 */
         .home-tile { background: #81c784 !important; border: 2px solid #2e7d32 !important; color: white !important; font-size: 16px; font-weight: bold; cursor: default; aspect-ratio: 1 / 1; }
 
         .score-box { margin-top: 15px; padding: 12px; background: #fff; border-radius: 10px; border: 1px solid #fff59d; text-align: center; }
@@ -205,9 +205,9 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // 교재 원본 데이터 100% 동일 (명칭 및 원문 전체 반영)
+        // 산책로 제거된 원본 카드 데이터
         const initialCards = {
-            purple: { '독서실':1, '놀이터':2, '산책로':1, '주차공간':1, '우체국':1, '병원':3, '약국':2, '유치원':1, '버스정류장':1, '음식점':2, '중학교':2, '학원':2, '카페':1, '초등학교':2, 'PC방':1, '세탁소':2, '노래방':1, '고등학교':1, '편의점':1 },
+            purple: { '독서실':1, '놀이터':2, '주차공간':1, '우체국':1, '병원':3, '약국':2, '유치원':1, '버스정류장':1, '음식점':2, '중학교':2, '학원':2, '카페':1, '초등학교':2, 'PC방':1, '세탁소':2, '노래방':1, '고등학교':1, '편의점':1 },
             blue: { '도서관':2, '소방서':1, '경찰서':1, '옥상정원':2, '보건소':1, '과일가게':1, '문화센터':1, '옷가게':1, '문구점':1, '대학교':1, '지하철역':2, '경로당':1, '볼링장':1, '카센터':1, '산':2, '공원':2, '주얼리샵':1, '축구장':1, '화장품가게':1, '대형마트':2, '농구장':1, '테니스장':1, '배드민턴장':1, '키즈카페':1, '헬스클럽':1, '빵집':1, '네일아트샵':1, '다이소':1, '핸드폰가게':1 },
             red: { '절':1, '성당':1, '교회':1, '생태연못':1, '기차역':1, '시장':1, '박물관':1, '미술관':1, '과학관':1, '놀이동산':1, '방송국':1, '백화점':1, '계곡':1, '바다':1, '유적지':1, '야구경기장':1, '전망대':1, '발전소':1 },
             green: { 
@@ -240,11 +240,9 @@
             groupBtnsDiv.appendChild(btn);
         }
 
-        // 모둠 선택 및 선택 후 고정(잠금) 기능
         function selectGroup(groupNum) {
             currentGroup = `group_${groupNum}`;
             
-            // 모든 버튼 비활성화 처리 (수업 중 다른 모둠 이동 방지)
             for(let i=1; i<=6; i++) {
                 const btn = document.getElementById(`g-btn-${i}`);
                 btn.disabled = true;
@@ -268,7 +266,6 @@
             });
         }
 
-        // 교사 전용 전체 모둠(1~6모둠) 초기화 함수 (비밀번호: 6363)
         function resetAllGroupsCards() {
             const inputPin = prompt("🔒 교사 인증: 비밀번호를 입력하세요.");
             if(inputPin === null) return;
@@ -330,7 +327,6 @@
         }
 
         function handleSlotClick(index, slotType) {
-            // 1. 이미 배치된 카드 회수
             if(myBoard[index] !== null) {
                 const removedCard = myBoard[index];
                 if(confirm(`'${removedCard.name}' 카드를 회수하여 카드덱으로 돌려보내시겠습니까?`)) {
@@ -345,7 +341,6 @@
                 return;
             }
 
-            // 2. 새 카드 배치 및 검증
             if(!selectedCard) {
                 alert('왼쪽 카드 목록에서 배치할 카드를 먼저 선택해주세요!');
                 return;
