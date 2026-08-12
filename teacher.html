@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🖥️ 교사 전용 모니터링 대시보드</title>
+    <title>🖥️ 전체 학생 개별 게임판 모니터링</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
@@ -11,60 +11,61 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
         * { box-sizing: border-box; font-family: 'Jua', sans-serif; font-weight: normal; }
-        body { background-color: #1e88e5; margin: 0; padding: 20px; color: #333; }
+        body { background-color: #1565c0; margin: 0; padding: 20px; color: #333; }
 
         /* 인증 모달 */
         .auth-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 999; }
-        .auth-box { background: white; padding: 30px; border-radius: 20px; text-align: center; width: 320px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-        .auth-box h3 { margin-top: 0; font-size: 24px; color: #1565c0; }
+        .auth-box { background: white; padding: 30px; border-radius: 20px; text-align: center; width: 320px; }
         .auth-box input { width: 100%; padding: 10px; font-size: 20px; text-align: center; border: 2px solid #ddd; border-radius: 10px; margin: 15px 0; }
         .auth-box button { width: 100%; padding: 12px; background: #1976d2; color: white; border: none; border-radius: 10px; font-size: 18px; cursor: pointer; }
 
-        /* 상단 헤더 및 버튼 */
+        /* 헤더 및 컨트롤 */
         .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 25px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .header h2 { margin: 0; color: #0d47a1; font-size: 26px; }
-        .btn-reset-all { background: #ef5350; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 10px; cursor: pointer; }
-        .btn-reset-all:hover { background: #d32f2f; }
+        .header h2 { margin: 0; color: #0d47a1; font-size: 24px; }
+        .btn-reset-all { background: #ef5350; color: white; border: none; padding: 10px 18px; font-size: 15px; border-radius: 10px; cursor: pointer; }
 
-        /* 6개 모둠 대시보드 그리드 */
-        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px; }
-        .group-card { background: white; border-radius: 16px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; flex-direction: column; }
-        .group-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; margin-bottom: 10px; }
-        .group-title { font-size: 22px; color: #1565c0; }
-        .group-score { font-size: 20px; color: #2e7d32; }
+        /* 전체 학생 그리드 카드 */
+        .student-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; }
+        .student-card { background: white; border-radius: 16px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; flex-direction: column; }
+        .student-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 8px; margin-bottom: 10px; }
+        .student-title { font-size: 20px; color: #1565c0; }
+        .student-score { font-size: 22px; color: #2e7d32; font-weight: bold; }
 
-        .btn-group-reset { background: #fff3e0; border: 1px solid #ff9800; color: #e65100; border-radius: 6px; padding: 4px 10px; font-size: 13px; cursor: pointer; }
-        .btn-group-reset:hover { background: #ffe0b2; }
+        .btn-reset-user { background: #ffe0b2; border: 1px solid #ff9800; color: #e65100; border-radius: 6px; padding: 3px 8px; font-size: 12px; cursor: pointer; }
+
+        /* 소진된 카드 현황 표시 영역 */
+        .card-usage-box { background: #f5f5f5; border-radius: 8px; padding: 8px; margin-bottom: 10px; font-size: 12px; line-height: 1.4; max-height: 70px; overflow-y: auto; }
+        .card-tag { display: inline-block; background: #e0f2f1; color: #004d40; border-radius: 4px; padding: 2px 6px; margin: 2px; font-size: 11px; }
 
         /* 미니 게임판 */
         .mini-board {
-            position: relative; background: #e0f7fa; border-radius: 12px; padding: 10px;
-            display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 20px;
-            border: 3px solid #b2ebf2; overflow: hidden; height: 260px;
+            position: relative; background: #e0f7fa; border-radius: 12px; padding: 8px;
+            display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 15px;
+            border: 2px solid #b2ebf2; height: 230px;
         }
 
-        .road-v { position: absolute; top: 0; bottom: 0; left: calc(50% - 8px); width: 16px; background: #424242; z-index: 1; }
-        .road-v::after { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); border-left: 1.5px dashed #ffffff; }
+        .road-v { position: absolute; top: 0; bottom: 0; left: calc(50% - 6px); width: 12px; background: #424242; z-index: 1; }
+        .road-v::after { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); border-left: 1px dashed #ffffff; }
 
-        .road-h { position: absolute; left: 0; right: 0; top: calc(50% - 8px); height: 16px; background: #424242; z-index: 1; }
-        .road-h::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); border-top: 1.5px dashed #ffffff; }
+        .road-h { position: absolute; left: 0; right: 0; top: calc(50% - 6px); height: 12px; background: #424242; z-index: 1; }
+        .road-h::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); border-top: 1px dashed #ffffff; }
 
-        .quadrant { z-index: 2; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 4px; }
+        .quadrant { z-index: 2; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 3px; }
 
         .mini-slot {
-            background: rgba(255, 255, 255, 0.9); border-radius: 6px; display: flex; align-items: center; justify-content: center;
-            text-align: center; font-size: 11px; padding: 2px; word-break: keep-all; line-height: 1.1; min-width: 0; min-height: 0; overflow: hidden;
+            background: rgba(255, 255, 255, 0.9); border-radius: 4px; display: flex; align-items: center; justify-content: center;
+            text-align: center; font-size: 10px; padding: 2px; word-break: keep-all; line-height: 1.1; min-width: 0; min-height: 0; overflow: hidden;
         }
-        .mini-slot.square-slot { border: 1.5px dashed #9e9e9e; aspect-ratio: 1 / 1; }
-        .mini-slot.long-green-slot { border: 1.5px dashed #43a047; grid-column: span 2; color: #2e7d32; font-size: 10px; }
+        .mini-slot.square-slot { border: 1px dashed #9e9e9e; aspect-ratio: 1 / 1; }
+        .mini-slot.long-green-slot { border: 1px dashed #43a047; grid-column: span 2; color: #2e7d32; font-size: 9px; }
 
-        .mini-slot.placed-purple { background-color: #e1bee7 !important; border: 1.5px solid #8e24aa !important; color: #4a148c; }
-        .mini-slot.placed-blue { background-color: #bbdefb !important; border: 1.5px solid #1e88e5 !important; color: #0d47a1; }
-        .mini-slot.placed-red { background-color: #ffcdd2 !important; border: 1.5px solid #e53935 !important; color: #b71c1c; }
-        .mini-slot.placed-green { background-color: #c8e6c9 !important; border: 1.5px solid #43a047 !important; color: #1b5e20; font-size: 10px; }
+        .mini-slot.placed-purple { background-color: #e1bee7 !important; border: 1px solid #8e24aa !important; color: #4a148c; }
+        .mini-slot.placed-blue { background-color: #bbdefb !important; border: 1px solid #1e88e5 !important; color: #0d47a1; }
+        .mini-slot.placed-red { background-color: #ffcdd2 !important; border: 1px solid #e53935 !important; color: #b71c1c; }
+        .mini-slot.placed-green { background-color: #c8e6c9 !important; border: 1px solid #43a047 !important; color: #1b5e20; font-size: 9px; }
 
-        .mini-home { background: #81c784 !important; border: 1.5px solid #2e7d32 !important; color: white !important; font-size: 12px; aspect-ratio: 1 / 1; }
-        .score-info { margin-top: 8px; font-size: 13px; color: #666; text-align: center; }
+        .mini-home { background: #81c784 !important; border: 1px solid #2e7d32 !important; color: white !important; font-size: 11px; aspect-ratio: 1 / 1; }
+        .no-students { background: white; padding: 40px; text-align: center; border-radius: 16px; font-size: 20px; color: #666; grid-column: 1 / -1; }
     </style>
 </head>
 <body>
@@ -72,21 +73,21 @@
     <!-- 비밀번호 인증 모달 -->
     <div id="auth-modal" class="auth-overlay">
         <div class="auth-box">
-            <h3>🔒 교사 인증</h3>
+            <h3 style="margin-top:0; color:#1565c0;">🔒 교사 인증</h3>
             <p style="color:#666; margin:0;">비밀번호를 입력하세요.</p>
             <input type="password" id="pin-input" placeholder="****" maxlength="6" onkeydown="if(event.key==='Enter') checkAuth()">
             <button onclick="checkAuth()">확인</button>
         </div>
     </div>
 
-    <!-- 대시보드 화면 -->
+    <!-- 대시보드 메인 -->
     <div id="dashboard" style="display:none;">
         <div class="header">
-            <h2>🖥️ 실시간 모둠별 게임판 관찰 대시보드</h2>
-            <button class="btn-reset-all" onclick="resetAllData()">💥 전체 모둠 초기화 (리셋)</button>
+            <h2>🖥️ 실시간 학생 개별 게임판 모니터링 (<span id="user-count">0</span>명 접속중)</h2>
+            <button class="btn-reset-all" onclick="resetAllStudents()">💥 전체 학생 초기화 (리셋)</button>
         </div>
 
-        <div class="dashboard-grid" id="grid-container"></div>
+        <div class="student-grid" id="student-grid"></div>
     </div>
 
     <script>
@@ -105,147 +106,133 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        const initialCards = {
-            purple: { '독서실':1, '놀이터':2, '주차공간':1, '우체국':1, '병원':3, '약국':2, '유치원':1, '버스정류장':1, '음식점':2, '중학교':2, '학원':2, '카페':1, '초등학교':2, 'PC방':1, '세탁소':2, '노래방':1, '고등학교':1, '편의점':1 },
-            blue: { '도서관':2, '소방서':1, '경찰서':1, '옥상정원':2, '보건소':1, '과일가게':1, '문화센터':1, '옷가게':1, '문구점':1, '대학교':1, '지하철역':2, '경로당':1, '볼링장':1, '카센터':1, '산':2, '공원':2, '주얼리샵':1, '축구장':1, '화장품가게':1, '대형마트':2, '농구장':1, '테니스장':1, '배드민턴장':1, '키즈카페':1, '헬스클럽':1, '빵집':1, '네일아트샵':1, '다이소':1, '핸드폰가게':1 },
-            red: { '절':1, '성당':1, '교회':1, '생태연못':1, '기차역':1, '시장':1, '박물관':1, '미술관':1, '과학관':1, '놀이동산':1, '방송국':1, '백화점':1, '계곡':1, '바다':1, '유적지':1, '야구경기장':1, '전망대':1, '발전소':1 },
-            green: { 
-                '지역 공동체 활동에 참여해요': 1, 
-                '층간 소음을 일으키지 않고 이웃의 생활공간을 배려해요': 1, 
-                '주차 공간을 배려해서 사용해요': 1, 
-                '자연 소재를 사용한 건축물을 지어요': 1, 
-                '주거 공용 공간을 만들어요': 1, 
-                '자연 에너지를 사용해요': 1, 
-                '이웃 돕기 활동에 참여해요': 1, 
-                '쓰레기를 분리 배출해요': 1, 
-                '옥상 정원 등 친환경 공간을 조성해요': 1 
-            }
-        };
-
         function checkAuth() {
             const val = document.getElementById('pin-input').value;
             if(val === TEACHER_PIN) {
                 document.getElementById('auth-modal').style.display = 'none';
                 document.getElementById('dashboard').style.display = 'block';
-                initDashboard();
+                listenToStudents();
             } else {
                 alert('❌ 비밀번호가 올바르지 않습니다.');
             }
         }
 
-        function initDashboard() {
-            const gridContainer = document.getElementById('grid-container');
-            gridContainer.innerHTML = '';
+        function listenToStudents() {
+            db.ref('students').on('value', (snapshot) => {
+                const studentsData = snapshot.val();
+                const grid = document.getElementById('student-grid');
+                grid.innerHTML = '';
 
-            for(let i=1; i<=6; i++) {
-                const cardHtml = `
-                    <div class="group-card">
-                        <div class="group-header">
-                            <span class="group-title">${i}모둠</span>
-                            <div>
-                                <span class="group-score" id="score-val-${i}">0점</span>
-                                <button class="btn-group-reset" onclick="resetSingleGroup(${i})">모둠 초기화</button>
+                if(!studentsData) {
+                    document.getElementById('user-count').innerText = "0";
+                    grid.innerHTML = `<div class="no-students">현재 접속 중인 학생이 없습니다.<br>학생들이 이름을 입력하고 게임에 접속하면 실시간으로 여기에 추가됩니다.</div>`;
+                    return;
+                }
+
+                const keys = Object.keys(studentsData);
+                document.getElementById('user-count').innerText = keys.length;
+
+                keys.forEach(sKey => {
+                    const student = studentsData[sKey];
+                    const score = student.scoreInfo || { total: 0, base: 0, bonus: 0, bonusDetails: '없음' };
+                    const board = student.board || Array(19).fill(null);
+
+                    // 설치된(소진된) 카드 계산
+                    const placedCards = board.filter(c => c !== null);
+                    let usedCardsHtml = "";
+                    if(placedCards.length === 0) {
+                        usedCardsHtml = `<span style="color:#888;">사용된 카드 없음 (배치 대기중)</span>`;
+                    } else {
+                        placedCards.forEach(c => {
+                            usedCardsHtml += `<span class="card-tag">${c.name} (${c.points}점)</span>`;
+                        });
+                    }
+
+                    const cardHtml = `
+                        <div class="student-card">
+                            <div class="student-header">
+                                <div>
+                                    <span class="student-title">[${student.group}] ${student.name}</span>
+                                    <button class="btn-reset-user" onclick="resetSingleStudent('${sKey}', '${student.name}')">초기화</button>
+                                </div>
+                                <span class="student-score">${score.total}점</span>
+                            </div>
+
+                            <div style="font-size:12px; color:#555; margin-bottom:5px;">
+                                <strong>📌 사용(소진)한 카드 목록 (${placedCards.length}개):</strong>
+                            </div>
+                            <div class="card-usage-box">${usedCardsHtml}</div>
+
+                            <div class="mini-board">
+                                <div class="road-v"></div>
+                                <div class="road-h"></div>
+
+                                <div class="quadrant">
+                                    <div class="mini-slot long-green-slot" id="${sKey}-s-0">초록</div>
+                                    <div class="mini-slot square-slot" id="${sKey}-s-1"></div>
+                                    <div class="mini-slot square-slot" id="${sKey}-s-2"></div>
+                                    <div class="mini-slot square-slot" id="${sKey}-s-3"></div>
+                                    <div class="mini-slot square-slot" id="${sKey}-s-4"></div>
+                                </div>
+                                <div class="quadrant">
+                                    <div class="mini-slot square-slot" id="${sKey}-s-5"></div>
+                                    <div class="mini-slot long-green-slot" id="${sKey}-s-6">초록</div>
+                                    <div class="mini-slot square-slot" id="${sKey}-s-7"></div>
+                                    <div class="mini-slot square-slot" id="${sKey}-s-8"></div>
+                                    <div class="mini-slot square-slot" id="${sKey}-s-9"></div>
+                                </div>
+                                <div class="quadrant">
+                                    <div class="mini-slot square-slot" id="${sKey}-s-10"></div>
+                                    <div class="mini-slot square-slot" id="${sKey}-s-11"></div>
+                                    <div class="mini-slot square-slot" id="${sKey}-s-12"></div>
+                                    <div class="mini-slot long-green-slot" id="${sKey}-s-13">초록</div>
+                                    <div class="mini-slot square-slot" id="${sKey}-s-14"></div>
+                                </div>
+                                <div class="quadrant">
+                                    <div class="mini-slot square-slot" id="${sKey}-s-15"></div>
+                                    <div class="mini-slot square-slot" id="${sKey}-s-16"></div>
+                                    <div class="mini-slot square-slot" id="${sKey}-s-17"></div>
+                                    <div class="mini-slot mini-home">🏠우리집</div>
+                                    <div class="mini-slot long-green-slot" id="${sKey}-s-18">초록</div>
+                                </div>
+                            </div>
+                            <div style="font-size:11px; color:#777; text-align:center; margin-top:5px;">
+                                기본: ${score.base}점 | 보너스: ${score.bonus}점 (${score.bonusDetails})
                             </div>
                         </div>
+                    `;
 
-                        <div class="mini-board">
-                            <div class="road-v"></div>
-                            <div class="road-h"></div>
+                    grid.insertAdjacentHTML('beforeend', cardHtml);
 
-                            <!-- 1분면 -->
-                            <div class="quadrant">
-                                <div class="mini-slot long-green-slot" id="g${i}-slot-0">초록</div>
-                                <div class="mini-slot square-slot" id="g${i}-slot-1"></div>
-                                <div class="mini-slot square-slot" id="g${i}-slot-2"></div>
-                                <div class="mini-slot square-slot" id="g${i}-slot-3"></div>
-                                <div class="mini-slot square-slot" id="g${i}-slot-4"></div>
-                            </div>
-                            <!-- 2분면 -->
-                            <div class="quadrant">
-                                <div class="mini-slot square-slot" id="g${i}-slot-5"></div>
-                                <div class="mini-slot long-green-slot" id="g${i}-slot-6">초록</div>
-                                <div class="mini-slot square-slot" id="g${i}-slot-7"></div>
-                                <div class="mini-slot square-slot" id="g${i}-slot-8"></div>
-                                <div class="mini-slot square-slot" id="g${i}-slot-9"></div>
-                            </div>
-                            <!-- 3분면 -->
-                            <div class="quadrant">
-                                <div class="mini-slot square-slot" id="g${i}-slot-10"></div>
-                                <div class="mini-slot square-slot" id="g${i}-slot-11"></div>
-                                <div class="mini-slot square-slot" id="g${i}-slot-12"></div>
-                                <div class="mini-slot long-green-slot" id="g${i}-slot-13">초록</div>
-                                <div class="mini-slot square-slot" id="g${i}-slot-14"></div>
-                            </div>
-                            <!-- 4분면 -->
-                            <div class="quadrant">
-                                <div class="mini-slot square-slot" id="g${i}-slot-15"></div>
-                                <div class="mini-slot square-slot" id="g${i}-slot-16"></div>
-                                <div class="mini-slot square-slot" id="g${i}-slot-17"></div>
-                                <div class="mini-slot mini-home">🏠우리집</div>
-                                <div class="mini-slot long-green-slot" id="g${i}-slot-18">초록</div>
-                            </div>
-                        </div>
+                    // 게임판 보드 타일 렌더링
+                    for(let k=0; k<19; k++) {
+                        const slot = document.getElementById(`${sKey}-s-${k}`);
+                        if(!slot) continue;
+                        const card = board[k];
+                        const isGreen = [0, 6, 13, 18].includes(k);
 
-                        <div class="score-info" id="score-detail-${i}">기본: 0점 | 보너스: 0점</div>
-                    </div>
-                `;
-                gridContainer.insertAdjacentHTML('beforeend', cardHtml);
-
-                // 실시간 데이터 수신 리스너 등록
-                db.ref(`groups/group_${i}`).on('value', (snapshot) => {
-                    const data = snapshot.val() || {};
-                    renderGroupBoard(i, data.board || []);
-                    renderGroupScore(i, data.scoreInfo || { total: 0, base: 0, bonus: 0, bonusDetails: '없음' });
+                        slot.className = `mini-slot ${isGreen ? 'long-green-slot' : 'square-slot'}`;
+                        if(card) {
+                            slot.classList.add(`placed-${card.color}`);
+                            slot.innerText = card.name;
+                        } else {
+                            slot.innerText = isGreen ? '초록' : '';
+                        }
+                    }
                 });
+            }
+        );
+        }
+
+        function resetSingleStudent(sKey, name) {
+            if(confirm(`'${name}' 학생의 게임판을 초기화하시겠습니까?`)) {
+                db.ref(`students/${sKey}`).remove();
             }
         }
 
-        function renderGroupBoard(groupNum, boardArray) {
-            for(let k=0; k<19; k++) {
-                const card = boardArray[k];
-                const slot = document.getElementById(`g${groupNum}-slot-${k}`);
-                if(!slot) continue;
-
-                const isGreen = [0, 6, 13, 18].includes(k);
-                slot.className = `mini-slot ${isGreen ? 'long-green-slot' : 'square-slot'}`;
-
-                if(card) {
-                    slot.classList.add(`placed-${card.color}`);
-                    slot.innerText = card.name;
-                } else {
-                    slot.innerText = isGreen ? '초록' : '';
-                }
-            }
-        }
-
-        function renderGroupScore(groupNum, scoreInfo) {
-            document.getElementById(`score-val-${groupNum}`).innerText = `${scoreInfo.total || 0}점`;
-            document.getElementById(`score-detail-${groupNum}`).innerText = `기본 ${scoreInfo.base || 0}점 + 보너스 ${scoreInfo.bonus || 0}점 (${scoreInfo.bonusDetails || '없음'})`;
-        }
-
-        function resetSingleGroup(groupNum) {
-            if(confirm(`${groupNum}모둠의 카드덱과 게임판을 모두 초기화하시겠습니까?`)) {
-                db.ref(`groups/group_${groupNum}`).set({
-                    cards: initialCards,
-                    board: Array(19).fill(null),
-                    scoreInfo: { total: 0, base: 0, bonus: 0, bonusDetails: '없음' }
-                });
-            }
-        }
-
-        function resetAllData() {
-            if(confirm("💥 정말로 [1~6모둠 전체]의 카드덱과 게임판을 초기화하시겠습니까?")) {
-                const updates = {};
-                for(let i=1; i<=6; i++) {
-                    updates[`groups/group_${i}`] = {
-                        cards: initialCards,
-                        board: Array(19).fill(null),
-                        scoreInfo: { total: 0, base: 0, bonus: 0, bonusDetails: '없음' }
-                    };
-                }
-                db.ref().update(updates, (err) => {
-                    if(!err) alert("✨ 모든 모둠이 성공적으로 초기화되었습니다!");
-                });
+        function resetAllStudents() {
+            if(confirm("💥 접속한 전체 학생들의 게임판 데이터를 전부 초기화하시겠습니까?")) {
+                db.ref('students').remove();
             }
         }
     </script>
