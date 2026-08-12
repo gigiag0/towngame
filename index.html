@@ -16,7 +16,7 @@
         .header { text-align: center; margin-bottom: 15px; }
         .header h2 { margin: 5px 0; color: #1565c0; font-size: 30px; }
 
-        /* 학생 접속 정보 입력창 */
+        /* 학생 로그인 상자 */
         .login-container { background: white; padding: 20px; border-radius: 16px; text-align: center; max-width: 450px; margin: 20px auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .login-container select, .login-container input { padding: 10px; font-size: 18px; border: 2px solid #1976d2; border-radius: 10px; margin: 8px 0; width: 80%; text-align: center; }
         .login-container button { padding: 10px 25px; background: #1976d2; color: white; border: none; border-radius: 10px; font-size: 18px; cursor: pointer; margin-top: 10px; }
@@ -35,20 +35,35 @@
         .tab-red { background: #ffcdd2; color: #b71c1c; }
         .tab-green { background: #c8e6c9; color: #1b5e20; }
 
-        .card-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 10px; max-height: 500px; overflow-y: auto; padding: 5px; }
-        .card-list.green-mode { grid-template-columns: repeat(2, 1fr); }
+        /* 카드 목록 그리드 - 고정 높이로 탭 전환 시 덱 영역 크기 변동 방지 */
+        .card-list { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); 
+            gap: 10px; 
+            height: 500px; 
+            overflow-y: auto; 
+            padding: 5px; 
+            align-content: start; 
+        }
 
+        /* 기본 일반 카드 (정사각형) */
         .card-item { 
             display: flex; align-items: center; justify-content: center; text-align: center;
             border-radius: 12px; font-size: 17px; border: 2px solid transparent; 
-            cursor: pointer; position: relative; word-break: keep-all; line-height: 1.3; padding: 6px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+            cursor: pointer; position: relative; word-break: keep-all; line-height: 1.25; padding: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08); aspect-ratio: 1 / 1;
         }
-        .card-item.square-card { aspect-ratio: 1 / 1; }
-        .card-item.long-card { aspect-ratio: 2 / 1; font-size: 14px; }
-        .card-item.selected { border-color: #000 !important; box-shadow: 0 0 10px rgba(0,0,0,0.4); transform: scale(1.04); z-index: 2; }
+
+        /* 초록색 카드 - 정사각형 2개를 합친 2:1 직사각형 */
+        .card-item.is-green {
+            grid-column: span 2;
+            aspect-ratio: 2.1 / 1;
+            font-size: 17px;
+        }
+
+        .card-item.selected { border-color: #000 !important; box-shadow: 0 0 10px rgba(0,0,0,0.4); transform: scale(1.03); z-index: 2; }
         .card-item.disabled { opacity: 0.25; cursor: not-allowed; background: #eee !important; border-color: #ccc !important; }
-        .badge { position: absolute; top: 3px; right: 4px; background: rgba(0,0,0,0.65); color: white; border-radius: 10px; padding: 1px 6px; font-size: 13px; }
+        .badge { position: absolute; top: 3px; right: 4px; background: rgba(0,0,0,0.65); color: white; border-radius: 10px; padding: 1px 6px; font-size: 12px; }
 
         .board-section { flex: 1.4; background: #b3e5fc; padding: 18px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
         
@@ -93,7 +108,7 @@
         <h2>🏡 근린환경 조성하기</h2>
     </div>
 
-    <!-- 로그인 화면 -->
+    <!-- 학생 접속창 -->
     <div class="login-container" id="login-box">
         <h3>모둠과 이름을 입력하세요</h3>
         <select id="group-select">
@@ -186,15 +201,15 @@
             blue: { '도서관':2, '소방서':1, '경찰서':1, '옥상정원':2, '보건소':1, '과일가게':1, '문화센터':1, '옷가게':1, '문구점':1, '대학교':1, '지하철역':2, '경로당':1, '볼링장':1, '카센터':1, '산':2, '공원':2, '주얼리샵':1, '축구장':1, '화장품가게':1, '대형마트':2, '농구장':1, '테니스장':1, '배드민턴장':1, '키즈카페':1, '헬스클럽':1, '빵집':1, '네일아트샵':1, '다이소':1, '핸드폰가게':1 },
             red: { '절':1, '성당':1, '교회':1, '생태연못':1, '기차역':1, '시장':1, '박물관':1, '미술관':1, '과학관':1, '놀이동산':1, '방송국':1, '백화점':1, '계곡':1, '바다':1, '유적지':1, '야구경기장':1, '전망대':1, '발전소':1 },
             green: { 
-                '지역 공동체 활동에 참여해요': 1, 
-                '층간 소음을 일으키지 않고 이웃의 생활공간을 배려해요': 1, 
-                '주차 공간을 배려해서 사용해요': 1, 
-                '자연 소재를 사용한 건축물을 지어요': 1, 
-                '주거 공용 공간을 만들어요': 1, 
-                '자연 에너지를 사용해요': 1, 
-                '이웃 돕기 활동에 참여해요': 1, 
-                '쓰레기를 분리 배출해요': 1, 
-                '옥상 정원 등 친환경 공간을 조성해요': 1 
+                '지역 공동체<br>활동에 참여해요': 1, 
+                '층간 소음을<br>배려해요': 1, 
+                '주차 공간을<br>배려해요': 1, 
+                '자연 소재<br>건축물 지어요': 1, 
+                '주거 공용<br>공간 만들어요': 1, 
+                '자연 에너지를<br>사용해요': 1, 
+                '이웃 돕기<br>참여해요': 1, 
+                '쓰레기<br>분리 배출해요': 1, 
+                '옥상 정원<br>공간 조성해요': 1 
             }
         };
 
@@ -206,6 +221,24 @@
         let myBoard = Array(19).fill(null);
         let myCards = JSON.parse(JSON.stringify(initialCards));
 
+        function parseBoardData(boardVal) {
+            const arr = Array(19).fill(null);
+            if (!boardVal) return arr;
+            if (Array.isArray(boardVal)) {
+                for(let i=0; i<19; i++) {
+                    if(boardVal[i]) arr[i] = boardVal[i];
+                }
+            } else if (typeof boardVal === 'object') {
+                for(let k in boardVal) {
+                    const idx = parseInt(k, 10);
+                    if (!isNaN(idx) && idx >= 0 && idx < 19) {
+                        arr[idx] = boardVal[k];
+                    }
+                }
+            }
+            return arr;
+        }
+
         function startApp() {
             studentGroup = document.getElementById('group-select').value;
             studentName = document.getElementById('student-name').value.trim();
@@ -215,21 +248,22 @@
                 return;
             }
 
-            studentId = `${studentGroup}_${studentName}`;
+            const safeGroup = studentGroup.replace(/[.#$\[\]]/g, '');
+            const safeName = studentName.replace(/[.#$\[\]]/g, '');
+            studentId = `${safeGroup}_${safeName}`;
 
             document.getElementById('login-box').style.display = 'none';
             document.getElementById('user-bar').style.display = 'block';
             document.getElementById('user-bar').innerText = `👤 [${studentGroup}] ${studentName} 학생의 게임판`;
             document.getElementById('game-area').style.display = 'flex';
 
-            // Firebase 실시간 동기화 (개인별)
             db.ref(`students/${studentId}`).on('value', (snapshot) => {
                 const data = snapshot.val();
                 if(!data) {
                     saveToFirebase();
                 } else {
                     myCards = data.cards || JSON.parse(JSON.stringify(initialCards));
-                    myBoard = data.board || Array(19).fill(null);
+                    myBoard = parseBoardData(data.board);
                     renderCards();
                     renderBoardUI();
                     calculateScore();
@@ -241,10 +275,6 @@
             activeTab = color;
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelector(`.tab-${color}`).classList.add('active');
-            
-            const cardListEl = document.getElementById('card-list');
-            if(color === 'green') cardListEl.classList.add('green-mode');
-            else cardListEl.classList.remove('green-mode');
             renderCards();
         }
 
@@ -257,12 +287,14 @@
             for(let name in category) {
                 const count = category[name];
                 const cardEl = document.createElement('div');
-                const isGreen = activeTab === 'green';
                 
-                cardEl.className = `card-item tab-${activeTab} ${isGreen ? 'long-card' : 'square-card'} ${count === 0 ? 'disabled' : ''}`;
+                // 초록색 카드일 때 is-green 클래스를 부여하여 가로 2칸 직사각형으로 처리
+                const isGreenClass = (activeTab === 'green') ? 'is-green' : '';
+                cardEl.className = `card-item tab-${activeTab} ${isGreenClass} ${count === 0 ? 'disabled' : ''}`;
+                
                 if(selectedCard && selectedCard.name === name) cardEl.classList.add('selected');
 
-                cardEl.innerHTML = `${name}<span class="badge">${count}개</span>`;
+                cardEl.innerHTML = `<span>${name}</span><span class="badge">${count}개</span>`;
                 
                 if(count > 0) {
                     cardEl.onclick = () => {
@@ -283,7 +315,7 @@
 
                 if(card) {
                     slot.className = `slot ${slotType === 'green' ? 'long-green-slot' : 'square-slot'} placed-${card.color}`;
-                    slot.innerText = `${card.name}\n(${card.points}점)`;
+                    slot.innerHTML = `<span>${card.name}</span><br><span style="font-size:11px; opacity:0.8;">(${card.points}점)</span>`;
                 } else {
                     slot.className = `slot ${slotType === 'green' ? 'long-green-slot' : 'square-slot'}`;
                     slot.innerText = slotType === 'green' ? '초록 카드 전용 칸' : '';
@@ -294,7 +326,8 @@
         function handleSlotClick(index, slotType) {
             if(myBoard[index] !== null) {
                 const removedCard = myBoard[index];
-                if(confirm(`'${removedCard.name}' 카드를 회수하시겠습니까?`)) {
+                const cleanName = removedCard.name.replace(/<br>/g, ' ');
+                if(confirm(`'${cleanName}' 카드를 회수하시겠습니까?`)) {
                     myCards[removedCard.color][removedCard.name] = (myCards[removedCard.color][removedCard.name] || 0) + 1;
                     myBoard[index] = null;
                     saveToFirebase();
@@ -326,38 +359,42 @@
             let baseScore = 0;
             const placed = [];
 
-            myBoard.forEach(c => {
-                if(c) {
-                    baseScore += c.points;
-                    placed.push(c.name);
-                }
-            });
+            if (Array.isArray(myBoard)) {
+                myBoard.forEach(c => {
+                    if(c) {
+                        baseScore += c.points;
+                        placed.push(c.name.replace(/<br>/g, ''));
+                    }
+                });
+            }
 
             let bonusScore = 0;
             let bonusList = [];
 
+            const contains = (item) => placed.some(p => p.includes(item));
+
             const schools = ['유치원', '초등학교', '중학교', '고등학교'];
-            const schoolCnt = schools.filter(s => placed.includes(s)).length;
-            if(schoolCnt === 4 && placed.includes('대학교')) { bonusScore += 20; bonusList.push('학군 완벽(20점)'); }
+            const schoolCnt = schools.filter(s => contains(s)).length;
+            if(schoolCnt === 4 && contains('대학교')) { bonusScore += 20; bonusList.push('학군 완벽(20점)'); }
             else if(schoolCnt >= 3) { bonusScore += 10; bonusList.push('학군 우수(10점)'); }
 
-            if(placed.includes('편의점') && placed.includes('카페')) { bonusScore += 10; bonusList.push('편의시설(10점)'); }
+            if(contains('편의점') && contains('카페')) { bonusScore += 10; bonusList.push('편의시설(10점)'); }
 
-            if(placed.includes('병원') && placed.includes('약국') && placed.includes('보건소')) { bonusScore += 15; bonusList.push('의료시설 완벽(15점)'); }
-            else if(placed.includes('병원') && placed.includes('약국')) { bonusScore += 10; bonusList.push('의료시설(10점)'); }
+            if(contains('병원') && contains('약국') && contains('보건소')) { bonusScore += 15; bonusList.push('의료시설 완벽(15점)'); }
+            else if(contains('병원') && contains('약국')) { bonusScore += 10; bonusList.push('의료시설(10점)'); }
 
-            if(placed.includes('소방서') && placed.includes('경찰서')) { bonusScore += 10; bonusList.push('안전시설(10점)'); }
+            if(contains('소방서') && contains('경찰서')) { bonusScore += 10; bonusList.push('안전시설(10점)'); }
 
-            if(placed.includes('버스정류장') && placed.includes('지하철역') && placed.includes('기차역')) { bonusScore += 15; bonusList.push('교통시설(15점)'); }
+            if(contains('버스정류장') && contains('지하철역') && contains('기차역')) { bonusScore += 15; bonusList.push('교통시설(15점)'); }
 
             const shopItems = ['화장품가게', '주얼리샵', '신발가게', '과일가게', '대형마트', '백화점', '다이소', '빵집', '옷가게'];
-            if(shopItems.filter(i => placed.includes(i)).length >= 4) { bonusScore += 15; bonusList.push('쇼핑시설(15점)'); }
+            if(shopItems.filter(i => contains(i)).length >= 4) { bonusScore += 15; bonusList.push('쇼핑시설(15점)'); }
 
             const cultureItems = ['박물관', '미술관', '과학관', '유적지', '헬스클럽', '테니스장', '농구장', '축구장', '배드민턴장'];
-            if(cultureItems.filter(i => placed.includes(i)).length >= 3) { bonusScore += 10; bonusList.push('문화시설(10점)'); }
+            if(cultureItems.filter(i => contains(i)).length >= 3) { bonusScore += 10; bonusList.push('문화시설(10점)'); }
 
             const ecoItems = ['산', '공원', '옥상정원', '계곡', '바다', '생태연못'];
-            if(ecoItems.filter(i => placed.includes(i)).length >= 3) { bonusScore += 10; bonusList.push('친환경공간(10점)'); }
+            if(ecoItems.filter(i => contains(i)).length >= 3) { bonusScore += 10; bonusList.push('친환경공간(10점)'); }
 
             const totalScore = baseScore + bonusScore;
             document.getElementById('my-score').innerText = totalScore;
