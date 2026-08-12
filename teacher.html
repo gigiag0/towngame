@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🖥️ 전체 학생 개별 게임판 모니터링</title>
+    <title>👩‍🏫 근린환경 조성하기 (교사용 모니터링)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
@@ -11,88 +11,73 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
         * { box-sizing: border-box; font-family: 'Jua', sans-serif; font-weight: normal; }
-        body { background-color: #1565c0; margin: 0; padding: 20px; color: #333; }
+        body { background-color: #f0f4f8; margin: 0; padding: 20px; }
 
-        /* 인증 모달 */
-        .auth-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 999; }
-        .auth-box { background: white; padding: 30px; border-radius: 20px; text-align: center; width: 320px; }
-        .auth-box input { width: 100%; padding: 10px; font-size: 20px; text-align: center; border: 2px solid #ddd; border-radius: 10px; margin: 15px 0; }
-        .auth-box button { width: 100%; padding: 12px; background: #1976d2; color: white; border: none; border-radius: 10px; font-size: 18px; cursor: pointer; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 25px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .header h2 { margin: 0; color: #1565c0; font-size: 26px; }
 
-        /* 헤더 및 컨트롤 */
-        .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 25px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .header h2 { margin: 0; color: #0d47a1; font-size: 24px; }
-        .btn-reset-all { background: #ef5350; color: white; border: none; padding: 10px 18px; font-size: 15px; border-radius: 10px; cursor: pointer; }
+        .reset-btn { background: #e53935; color: white; border: none; padding: 10px 20px; border-radius: 10px; font-size: 16px; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 5px rgba(229,57,53,0.3); }
+        .reset-btn:hover { background: #c62828; transform: scale(1.03); }
 
-        /* 전체 학생 그리드 카드 */
-        .student-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; }
-        .student-card { background: white; border-radius: 16px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; flex-direction: column; }
-        .student-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 8px; margin-bottom: 10px; }
-        .student-title { font-size: 20px; color: #1565c0; }
-        .student-score { font-size: 22px; color: #2e7d32; font-weight: bold; }
+        .filter-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+        .filter-btn { padding: 8px 16px; border: 2px solid #1976d2; background: white; color: #1976d2; border-radius: 20px; font-size: 15px; cursor: pointer; transition: 0.2s; }
+        .filter-btn.active { background: #1976d2; color: white; }
 
-        .btn-reset-user { background: #ffe0b2; border: 1px solid #ff9800; color: #e65100; border-radius: 6px; padding: 3px 8px; font-size: 12px; cursor: pointer; }
+        .student-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
 
-        /* 소진된 카드 현황 표시 영역 */
-        .card-usage-box { background: #f5f5f5; border-radius: 8px; padding: 8px; margin-bottom: 10px; font-size: 12px; line-height: 1.4; max-height: 70px; overflow-y: auto; }
-        .card-tag { display: inline-block; background: #e0f2f1; color: #004d40; border-radius: 4px; padding: 2px 6px; margin: 2px; font-size: 11px; }
+        .student-card { background: white; border-radius: 16px; padding: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.06); border: 2px solid #e0e0e0; display: flex; flex-direction: column; gap: 10px; }
+        .student-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f0f0f0; padding-bottom: 8px; }
+        .student-title { font-size: 20px; color: #333; }
+        .student-score { background: #e3f2fd; color: #1565c0; padding: 4px 12px; border-radius: 12px; font-size: 18px; font-weight: bold; }
 
-        /* 미니 게임판 */
+        .score-detail-text { font-size: 13px; color: #666; margin-top: -4px; }
+
+        /* 미니 보드판 스타일 */
         .mini-board {
-            position: relative; background: #e0f7fa; border-radius: 12px; padding: 8px;
-            display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 15px;
-            border: 2px solid #b2ebf2; height: 230px;
+            background: #e0f7fa; border-radius: 12px; padding: 8px;
+            display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 12px;
+            border: 2px solid #b2ebf2; position: relative;
         }
 
-        .road-v { position: absolute; top: 0; bottom: 0; left: calc(50% - 6px); width: 12px; background: #424242; z-index: 1; }
-        .road-v::after { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); border-left: 1px dashed #ffffff; }
-
-        .road-h { position: absolute; left: 0; right: 0; top: calc(50% - 6px); height: 12px; background: #424242; z-index: 1; }
-        .road-h::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); border-top: 1px dashed #ffffff; }
-
-        .quadrant { z-index: 2; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 3px; }
-
+        .mini-quadrant { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap: 3px; }
         .mini-slot {
-            background: rgba(255, 255, 255, 0.9); border-radius: 4px; display: flex; align-items: center; justify-content: center;
-            text-align: center; font-size: 10px; padding: 2px; word-break: keep-all; line-height: 1.1; min-width: 0; min-height: 0; overflow: hidden;
+            background: rgba(255,255,255,0.9); border-radius: 4px; font-size: 10px; text-align: center;
+            display: flex; align-items: center; justify-content: center; word-break: keep-all; padding: 2px;
+            line-height: 1.1; aspect-ratio: 1 / 1; overflow: hidden; border: 1px dashed #aaa; min-height: 28px;
         }
-        .mini-slot.square-slot { border: 1px dashed #9e9e9e; aspect-ratio: 1 / 1; }
-        .mini-slot.long-green-slot { border: 1px dashed #43a047; grid-column: span 2; color: #2e7d32; font-size: 9px; }
+        .mini-slot.is-green-slot { grid-column: span 2; aspect-ratio: 2.1 / 1; border-color: #43a047; }
+        .mini-slot.home { background: #81c784; color: white; border: none; font-size: 11px; }
 
-        .mini-slot.placed-purple { background-color: #e1bee7 !important; border: 1px solid #8e24aa !important; color: #4a148c; }
-        .mini-slot.placed-blue { background-color: #bbdefb !important; border: 1px solid #1e88e5 !important; color: #0d47a1; }
-        .mini-slot.placed-red { background-color: #ffcdd2 !important; border: 1px solid #e53935 !important; color: #b71c1c; }
-        .mini-slot.placed-green { background-color: #c8e6c9 !important; border: 1px solid #43a047 !important; color: #1b5e20; font-size: 9px; }
+        .mini-slot.placed-purple { background-color: #e1bee7; border: 1px solid #8e24aa; color: #4a148c; }
+        .mini-slot.placed-blue { background-color: #bbdefb; border: 1px solid #1e88e5; color: #0d47a1; }
+        .mini-slot.placed-red { background-color: #ffcdd2; border: 1px solid #e53935; color: #b71c1c; }
+        .mini-slot.placed-green { background-color: #c8e6c9; border: 1px solid #43a047; color: #1b5e20; }
 
-        .mini-home { background: #81c784 !important; border: 1px solid #2e7d32 !important; color: white !important; font-size: 11px; aspect-ratio: 1 / 1; }
-        .no-students { background: white; padding: 40px; text-align: center; border-radius: 16px; font-size: 20px; color: #666; grid-column: 1 / -1; }
+        .empty-msg { text-align: center; color: #888; font-size: 18px; grid-column: 1 / -1; padding: 50px 0; }
     </style>
 </head>
 <body>
 
-    <!-- 비밀번호 인증 모달 -->
-    <div id="auth-modal" class="auth-overlay">
-        <div class="auth-box">
-            <h3 style="margin-top:0; color:#1565c0;">🔒 교사 인증</h3>
-            <p style="color:#666; margin:0;">비밀번호를 입력하세요.</p>
-            <input type="password" id="pin-input" placeholder="****" maxlength="6" onkeydown="if(event.key==='Enter') checkAuth()">
-            <button onclick="checkAuth()">확인</button>
-        </div>
+    <div class="header">
+        <h2>👩‍🏫 실시간 학생 보드판 모니터링</h2>
+        <button class="reset-btn" onclick="resetAllData()">🚨 전체 게임 초기화</button>
     </div>
 
-    <!-- 대시보드 메인 -->
-    <div id="dashboard" style="display:none;">
-        <div class="header">
-            <h2>🖥️ 실시간 학생 개별 게임판 모니터링 (<span id="user-count">0</span>명 접속중)</h2>
-            <button class="btn-reset-all" onclick="resetAllStudents()">💥 전체 학생 초기화 (리셋)</button>
-        </div>
+    <div class="filter-bar">
+        <button class="filter-btn active" onclick="filterGroup('전체')">전체 보기</button>
+        <button class="filter-btn" onclick="filterGroup('1모둠')">1모둠</button>
+        <button class="filter-btn" onclick="filterGroup('2모둠')">2모둠</button>
+        <button class="filter-btn" onclick="filterGroup('3모둠')">3모둠</button>
+        <button class="filter-btn" onclick="filterGroup('4모둠')">4모둠</button>
+        <button class="filter-btn" onclick="filterGroup('5모둠')">5모둠</button>
+        <button class="filter-btn" onclick="filterGroup('6모둠')">6모둠</button>
+    </div>
 
-        <div class="student-grid" id="student-grid"></div>
+    <div id="student-grid" class="student-grid">
+        <div class="empty-msg">학생들이 게임에 접속하기를 기다리고 있습니다...</div>
     </div>
 
     <script>
-        const TEACHER_PIN = "6363";
-
         const firebaseConfig = {
             apiKey: "AIzaSyCDSJdGeG7TV1G0TJkV2JmwPiVLBwcP9ms",
             authDomain: "giga01-4bbd9.firebaseapp.com",
@@ -106,133 +91,100 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        function checkAuth() {
-            const val = document.getElementById('pin-input').value;
-            if(val === TEACHER_PIN) {
-                document.getElementById('auth-modal').style.display = 'none';
-                document.getElementById('dashboard').style.display = 'block';
-                listenToStudents();
-            } else {
-                alert('❌ 비밀번호가 올바르지 않습니다.');
+        let allStudentsData = {};
+        let currentFilter = '전체';
+
+        // 실시간 학생 데이터 모니터링
+        db.ref('students').on('value', (snapshot) => {
+            allStudentsData = snapshot.val() || {};
+            renderStudents();
+        });
+
+        function filterGroup(groupName) {
+            currentFilter = groupName;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.innerText === groupName || (groupName === '전체' && btn.innerText === '전체 보기'));
+            });
+            renderStudents();
+        }
+
+        function renderStudents() {
+            const container = document.getElementById('student-grid');
+            container.innerHTML = '';
+
+            const studentKeys = Object.keys(allStudentsData);
+
+            if (studentKeys.length === 0) {
+                container.innerHTML = '<div class="empty-msg">현재 접속한 학생이 없거나 초기화되었습니다.</div>';
+                return;
+            }
+
+            let renderedCount = 0;
+
+            studentKeys.forEach(id => {
+                const student = allStudentsData[id];
+                if (!student) return;
+
+                if (currentFilter !== '전체' && student.group !== currentFilter) return;
+
+                renderedCount++;
+                const card = document.createElement('div');
+                card.className = 'student-card';
+
+                const scoreInfo = student.scoreInfo || { total: 0, base: 0, bonus: 0, bonusDetails: '없음' };
+                const board = student.board || Array(19).fill(null);
+
+                card.innerHTML = `
+                    <div class="student-card-header">
+                        <span class="student-title"><strong>[${student.group}]</strong> ${student.name}</span>
+                        <span class="student-score">${scoreInfo.total}점</span>
+                    </div>
+                    <div class="score-detail-text">
+                        기본 ${scoreInfo.base}점 + 보너스 ${scoreInfo.bonus}점 (${scoreInfo.bonusDetails || '보너스 없음'})
+                    </div>
+                    <div class="mini-board">
+                        ${renderMiniQuadrant([0, 1, 2, 3, 4], board)}
+                        ${renderMiniQuadrant([5, 6, 7, 8, 9], board)}
+                        ${renderMiniQuadrant([10, 11, 12, 13, 14], board)}
+                        ${renderMiniQuadrant([15, 16, 17, 'home', 18], board)}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            if (renderedCount === 0) {
+                container.innerHTML = `<div class="empty-msg">${currentFilter}에 해당하는 학생이 없습니다.</div>`;
             }
         }
 
-        function listenToStudents() {
-            db.ref('students').on('value', (snapshot) => {
-                const studentsData = snapshot.val();
-                const grid = document.getElementById('student-grid');
-                grid.innerHTML = '';
+        function renderMiniQuadrant(indices, board) {
+            let html = '<div class="mini-quadrant">';
+            indices.forEach(idx => {
+                if (idx === 'home') {
+                    html += `<div class="mini-slot home">🏠<br>우리집</div>`;
+                } else {
+                    const card = board[idx];
+                    const isGreenSlot = [0, 6, 13, 18].includes(idx);
+                    const slotClass = isGreenSlot ? 'is-green-slot' : '';
 
-                if(!studentsData) {
-                    document.getElementById('user-count').innerText = "0";
-                    grid.innerHTML = `<div class="no-students">현재 접속 중인 학생이 없습니다.<br>학생들이 이름을 입력하고 게임에 접속하면 실시간으로 여기에 추가됩니다.</div>`;
-                    return;
-                }
-
-                const keys = Object.keys(studentsData);
-                document.getElementById('user-count').innerText = keys.length;
-
-                keys.forEach(sKey => {
-                    const student = studentsData[sKey];
-                    const score = student.scoreInfo || { total: 0, base: 0, bonus: 0, bonusDetails: '없음' };
-                    const board = student.board || Array(19).fill(null);
-
-                    // 설치된(소진된) 카드 계산
-                    const placedCards = board.filter(c => c !== null);
-                    let usedCardsHtml = "";
-                    if(placedCards.length === 0) {
-                        usedCardsHtml = `<span style="color:#888;">사용된 카드 없음 (배치 대기중)</span>`;
+                    if (card) {
+                        const cleanName = card.name.replace(/<br>/g, '');
+                        html += `<div class="mini-slot ${slotClass} placed-${card.color}">${cleanName}</div>`;
                     } else {
-                        placedCards.forEach(c => {
-                            usedCardsHtml += `<span class="card-tag">${c.name} (${c.points}점)</span>`;
-                        });
+                        html += `<div class="mini-slot ${slotClass}"></div>`;
                     }
-
-                    const cardHtml = `
-                        <div class="student-card">
-                            <div class="student-header">
-                                <div>
-                                    <span class="student-title">[${student.group}] ${student.name}</span>
-                                    <button class="btn-reset-user" onclick="resetSingleStudent('${sKey}', '${student.name}')">초기화</button>
-                                </div>
-                                <span class="student-score">${score.total}점</span>
-                            </div>
-
-                            <div style="font-size:12px; color:#555; margin-bottom:5px;">
-                                <strong>📌 사용(소진)한 카드 목록 (${placedCards.length}개):</strong>
-                            </div>
-                            <div class="card-usage-box">${usedCardsHtml}</div>
-
-                            <div class="mini-board">
-                                <div class="road-v"></div>
-                                <div class="road-h"></div>
-
-                                <div class="quadrant">
-                                    <div class="mini-slot long-green-slot" id="${sKey}-s-0">초록</div>
-                                    <div class="mini-slot square-slot" id="${sKey}-s-1"></div>
-                                    <div class="mini-slot square-slot" id="${sKey}-s-2"></div>
-                                    <div class="mini-slot square-slot" id="${sKey}-s-3"></div>
-                                    <div class="mini-slot square-slot" id="${sKey}-s-4"></div>
-                                </div>
-                                <div class="quadrant">
-                                    <div class="mini-slot square-slot" id="${sKey}-s-5"></div>
-                                    <div class="mini-slot long-green-slot" id="${sKey}-s-6">초록</div>
-                                    <div class="mini-slot square-slot" id="${sKey}-s-7"></div>
-                                    <div class="mini-slot square-slot" id="${sKey}-s-8"></div>
-                                    <div class="mini-slot square-slot" id="${sKey}-s-9"></div>
-                                </div>
-                                <div class="quadrant">
-                                    <div class="mini-slot square-slot" id="${sKey}-s-10"></div>
-                                    <div class="mini-slot square-slot" id="${sKey}-s-11"></div>
-                                    <div class="mini-slot square-slot" id="${sKey}-s-12"></div>
-                                    <div class="mini-slot long-green-slot" id="${sKey}-s-13">초록</div>
-                                    <div class="mini-slot square-slot" id="${sKey}-s-14"></div>
-                                </div>
-                                <div class="quadrant">
-                                    <div class="mini-slot square-slot" id="${sKey}-s-15"></div>
-                                    <div class="mini-slot square-slot" id="${sKey}-s-16"></div>
-                                    <div class="mini-slot square-slot" id="${sKey}-s-17"></div>
-                                    <div class="mini-slot mini-home">🏠우리집</div>
-                                    <div class="mini-slot long-green-slot" id="${sKey}-s-18">초록</div>
-                                </div>
-                            </div>
-                            <div style="font-size:11px; color:#777; text-align:center; margin-top:5px;">
-                                기본: ${score.base}점 | 보너스: ${score.bonus}점 (${score.bonusDetails})
-                            </div>
-                        </div>
-                    `;
-
-                    grid.insertAdjacentHTML('beforeend', cardHtml);
-
-                    // 게임판 보드 타일 렌더링
-                    for(let k=0; k<19; k++) {
-                        const slot = document.getElementById(`${sKey}-s-${k}`);
-                        if(!slot) continue;
-                        const card = board[k];
-                        const isGreen = [0, 6, 13, 18].includes(k);
-
-                        slot.className = `mini-slot ${isGreen ? 'long-green-slot' : 'square-slot'}`;
-                        if(card) {
-                            slot.classList.add(`placed-${card.color}`);
-                            slot.innerText = card.name;
-                        } else {
-                            slot.innerText = isGreen ? '초록' : '';
-                        }
-                    }
-                });
-            }
-        );
+                }
+            });
+            html += '</div>';
+            return html;
         }
 
-        function resetSingleStudent(sKey, name) {
-            if(confirm(`'${name}' 학생의 게임판을 초기화하시겠습니까?`)) {
-                db.ref(`students/${sKey}`).remove();
-            }
-        }
-
-        function resetAllStudents() {
-            if(confirm("💥 접속한 전체 학생들의 게임판 데이터를 전부 초기화하시겠습니까?")) {
+        // 전체 게임 데이터 초기화 함수
+        function resetAllData() {
+            if (confirm('🚨 정말로 모든 학생 데이터와 모둠 카드 덱을 초기화하시겠습니까?\n\n(모든 학생의 화면과 카드 덱이 즉시 깨끗하게 초기화됩니다.)')) {
                 db.ref('students').remove();
+                db.ref('groups').remove();
+                alert('✅ 전체 게임 데이터가 성공적으로 초기화되었습니다.');
             }
         }
     </script>
