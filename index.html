@@ -17,6 +17,10 @@
         .group-btn { padding: 8px 16px; margin: 4px; border: 2px solid #1976d2; background: white; color: #1976d2; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 14px; }
         .group-btn.active { background: #1976d2; color: white; }
 
+        /* 초기화 버튼 스타일 */
+        .reset-btn { margin-top: 8px; padding: 6px 12px; background: #ffebee; border: 1px solid #ef5350; color: #c62828; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; }
+        .reset-btn:hover { background: #ffcdd2; }
+
         .main-layout { display: flex; flex-direction: column; gap: 15px; max-width: 1100px; margin: 0 auto; }
         @media (min-width: 850px) { .main-layout { flex-direction: row; } }
 
@@ -36,10 +40,9 @@
         .card-item.disabled { opacity: 0.25; cursor: not-allowed; background: #eee !important; border-color: #ccc !important; }
         .badge { position: absolute; top: 2px; right: 4px; background: rgba(0,0,0,0.6); color: white; border-radius: 10px; padding: 1px 5px; font-size: 10px; }
 
-        /* 보드판 영역 (사진 100% 동일 구현) */
+        /* 보드판 영역 */
         .board-section { flex: 1.3; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         
-        /* 사진과 동일한 도로 배경 보드판 */
         .real-board {
             position: relative;
             background: linear-gradient(to bottom, #bbdefb 0%, #bbdefb 50%, #c8e6c9 50%, #c8e6c9 100%);
@@ -53,14 +56,12 @@
             box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
         }
 
-        /* 십자 도로 표현 */
         .road-v { position: absolute; top: 0; bottom: 0; left: calc(50% - 12px); width: 24px; background: #424242; z-index: 1; border-left: 2px dashed #fff; border-right: 2px dashed #fff; }
         .road-h { position: absolute; left: 0; right: 0; top: calc(50% - 12px); height: 24px; background: #424242; z-index: 1; border-top: 2px dashed #fff; border-bottom: 2px dashed #fff; }
 
         .quadrant { z-index: 2; display: flex; gap: 8px; }
         .col { display: flex; flex-direction: column; gap: 6px; flex: 1; }
 
-        /* 슬롯 스타일링 */
         .slot {
             background: rgba(255, 255, 255, 0.9);
             border-radius: 8px;
@@ -77,20 +78,16 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        /* 슬롯 구분 (세로 초록, 가로 회색) */
         .slot.grey-dashed { border: 2px dashed #757575; min-height: 48px; }
         .slot.green-dashed { border: 2px dashed #2e7d32; min-height: 65px; }
 
-        /* 배치된 카드 색상 스타일 */
         .slot.placed-purple { background-color: #e1bee7 !important; border: 2px solid #8e24aa !important; color: #4a148c; }
         .slot.placed-blue { background-color: #bbdefb !important; border: 2px solid #1e88e5 !important; color: #0d47a1; }
         .slot.placed-red { background-color: #ffcdd2 !important; border: 2px solid #e53935 !important; color: #b71c1c; }
         .slot.placed-green { background-color: #c8e6c9 !important; border: 2px solid #43a047 !important; color: #1b5e20; }
 
-        /* 우리집 고정 타일 */
         .home-tile { background: #81c784 !important; border: 2px solid #2e7d32 !important; color: white !important; font-size: 14px; font-weight: bold; cursor: default; min-height: 48px; }
 
-        /* 점수판 */
         .score-box { margin-top: 15px; padding: 12px; background: #fffde7; border-radius: 8px; border: 1px solid #fff59d; text-align: center; }
         .score-total { font-size: 22px; font-weight: bold; color: #f57f17; }
         .score-breakdown { font-size: 11px; color: #555; margin-top: 4px; line-height: 1.4; }
@@ -102,14 +99,16 @@
         <h2>🏡 근린환경 조성하기</h2>
     </div>
 
-    <!-- 모둠 선택 영역 -->
+    <!-- 모둠 선택 및 초기화 영역 -->
     <div class="group-select-container">
         <b>소속 모둠을 선택하세요:</b><br>
         <div id="group-btns" style="margin-top:6px;"></div>
+        <div id="reset-area" style="display:none; margin-top: 8px;">
+            <button class="reset-btn" onclick="resetCurrentGroupCards()">🔄 선택한 모둠 카드 전체 초기화</button>
+        </div>
     </div>
 
     <div class="main-layout" id="game-area" style="display:none;">
-        <!-- 왼쪽: 카드 목록 -->
         <div class="card-deck-section">
             <h4 style="margin:0 0 10px 0;">🃏 모둠 공유 카드덱</h4>
             <div class="tabs">
@@ -121,7 +120,6 @@
             <div id="card-list" class="card-list"></div>
         </div>
 
-        <!-- 오른쪽: 사진과 동일한 실물 보드판 -->
         <div class="board-section">
             <h4 style="margin:0 0 6px 0;">🗺️ 나의 마을 보드판</h4>
             <p style="font-size:11px; color:#666; margin:0 0 10px 0;">* 카드를 선택한 후 원하는 빈 칸을 터치해 배치하세요.</p>
@@ -130,7 +128,6 @@
                 <div class="road-v"></div>
                 <div class="road-h"></div>
 
-                <!-- 1. 좌상단 영역 (4개 칸) -->
                 <div class="quadrant">
                     <div class="col">
                         <div class="slot green-dashed" id="slot-0" onclick="placeCard(0)">빈 공간 1</div>
@@ -142,7 +139,6 @@
                     </div>
                 </div>
 
-                <!-- 2. 우상단 영역 (3개 칸 + 우리집) -->
                 <div class="quadrant">
                     <div class="col">
                         <div class="slot grey-dashed" id="slot-4" onclick="placeCard(4)">빈 공간 5</div>
@@ -155,7 +151,6 @@
                     </div>
                 </div>
 
-                <!-- 3. 좌하단 영역 (5개 칸) -->
                 <div class="quadrant">
                     <div class="col">
                         <div class="slot green-dashed" id="slot-8" onclick="placeCard(8)">빈 공간 9</div>
@@ -168,19 +163,15 @@
                     </div>
                 </div>
 
-                <!-- 4. 우하단 영역 (3개 칸 + 2개 추가칸 = 3개 슬롯) -->
                 <div class="quadrant">
                     <div class="col">
                         <div class="slot grey-dashed" id="slot-13" onclick="placeCard(13)">빈 공간 14</div>
                         <div class="slot grey-dashed" id="slot-14" onclick="placeCard(14)">빈 공간 15</div>
                     </div>
-                    <div class="col">
-                        <!-- 여백 조율용 디자인 공간 -->
-                    </div>
+                    <div class="col"></div>
                 </div>
             </div>
 
-            <!-- 자동 점수 및 보너스 점수 연산 -->
             <div class="score-box">
                 <div class="score-total">총점: <span id="my-score">0</span>점</div>
                 <div id="score-detail" class="score-breakdown">기본 점수: 0점 | 보너스 점수: 0점</div>
@@ -189,7 +180,6 @@
     </div>
 
     <script>
-        // 선생님의 Firebase 연결 정보
         const firebaseConfig = {
             apiKey: "AIzaSyCDSJdGeG7TV1G0TJkV2JmwPiVLBwcP9ms",
             authDomain: "giga01-4bbd9.firebaseapp.com",
@@ -203,7 +193,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // 설명서 기반 카드 데이터 세팅
         const initialCards = {
             purple: { '독서실':1, '놀이터':2, '산책로':1, '주차공간':1, '우체국':1, '병원':3, '약국':2, '유치원':1, '버스정류장':1, '음식점':2, '중학교':2, '학원':2, '카페':1, '초등학교':2, 'PC방':1, '세탁소':2, '노래방':1, '고등학교':1, '편의점':1 },
             blue: { '도서관':2, '소방서':1, '경찰서':1, '옥상정원':2, '보건소':1, '과일가게':1, '문화센터':1, '옷가게':1, '문구점':1, '대학교':1, '지하철역':2, '경로당':1, '볼링장':1, '카센터':1, '산':2, '공원':2, '주얼리샵':1, '축구장':1, '화장품가게':1, '대형마트':2, '농구장':1, '테니스장':1, '배드민턴장':1, '키즈카페':1, '헬스클럽':1, '빵가게':1, '네일아트샵':1, '다잇소':1, '핸드폰가게':1 },
@@ -217,7 +206,6 @@
         let myBoard = Array(15).fill(null);
         let groupCardCounts = {};
 
-        // 모둠 버튼 생성
         const groupBtnsDiv = document.getElementById('group-btns');
         for(let i=1; i<=6; i++) {
             const btn = document.createElement('button');
@@ -233,8 +221,8 @@
                 b.classList.toggle('active', idx + 1 === groupNum);
             });
             document.getElementById('game-area').style.display = 'flex';
+            document.getElementById('reset-area').style.display = 'block';
 
-            // Firebase 모둠 실시간 동기화
             const groupRef = db.ref(`groups/${currentGroup}/cards`);
             groupRef.on('value', (snapshot) => {
                 const data = snapshot.val();
@@ -245,6 +233,19 @@
                     renderCards();
                 }
             });
+        }
+
+        // 모둠 카드 수량 초기화 함수
+        function resetCurrentGroupCards() {
+            if(!currentGroup) return;
+            const groupNumStr = currentGroup.replace('group_', '');
+            if(confirm(`${groupNumStr}모둠의 공유 카드를 모두 초기화하시겠습니까?`)) {
+                db.ref(`groups/${currentGroup}/cards`).set(initialCards, (error) => {
+                    if(!error) {
+                        alert(`${groupNumStr}모둠 카드가 처음 상태로 초기화되었습니다!`);
+                    }
+                });
+            }
         }
 
         function switchTab(color) {
@@ -279,7 +280,6 @@
             }
         }
 
-        // 보드판에 카드 배치 및 색상 반영
         function placeCard(index) {
             if(!selectedCard) {
                 alert('왼쪽 카드 목록에서 먼저 카드를 선택해주세요!');
@@ -293,11 +293,9 @@
             myBoard[index] = selectedCard;
             const slot = document.getElementById(`slot-${index}`);
             
-            // 색상 및 글자 변경
             slot.className = `slot placed-${selectedCard.color}`;
             slot.innerText = `${selectedCard.name}\n(${selectedCard.points}점)`;
 
-            // 파이어베이스 DB 모둠 공동 수량 1개 차감
             const targetRef = db.ref(`groups/${currentGroup}/cards/${selectedCard.color}/${selectedCard.name}`);
             targetRef.transaction((currentCount) => {
                 return (currentCount || 1) - 1;
@@ -307,7 +305,6 @@
             calculateScore();
         }
 
-        // 설명서 규칙 기반 실시간 점수 + 보너스 점수 자동 계산
         function calculateScore() {
             let baseScore = 0;
             const placed = [];
@@ -322,7 +319,6 @@
             let bonusScore = 0;
             let bonusList = [];
 
-            // 1. 학군 점수 (유, 초, 중, 고 중 3개 이상 10점 / 대학교 포함 5개 모두 20점)
             const schools = ['유치원', '초등학교', '중학교', '고등학교'];
             const schoolCnt = schools.filter(s => placed.includes(s)).length;
             if(schoolCnt === 4 && placed.includes('대학교')) { 
@@ -331,47 +327,39 @@
                 bonusScore += 10; bonusList.push('학군 우수(10점)'); 
             }
 
-            // 2. 편의시설 점수 (편의점 + 카페 = 10점)
             if(placed.includes('편의점') && placed.includes('카페')) { 
                 bonusScore += 10; bonusList.push('편의시설(10점)'); 
             }
 
-            // 3. 의료시설 점수 (병원 + 약국 + 보건소 3개 = 15점 / 병원 + 약국 = 10점)
             if(placed.includes('병원') && placed.includes('약국') && placed.includes('보건소')) { 
                 bonusScore += 15; bonusList.push('의료시설 완벽(15점)'); 
             } else if(placed.includes('병원') && placed.includes('약국')) { 
                 bonusScore += 10; bonusList.push('의료시설(10점)'); 
             }
 
-            // 4. 안전시설 점수 (소방서 + 경찰서 = 10점)
             if(placed.includes('소방서') && placed.includes('경찰서')) { 
                 bonusScore += 10; bonusList.push('안전시설(10점)'); 
             }
 
-            // 5. 교통시설 점수 (버스정류장 + 지하철역 + 기차역 3개 = 15점)
             if(placed.includes('버스정류장') && placed.includes('지하철역') && placed.includes('기차역')) { 
                 bonusScore += 15; bonusList.push('교통시설(15점)'); 
             }
 
-            // 6. 쇼핑시설 점수 (목록 중 4개 이상 모으면 15점)
             const shopItems = ['화장품가게', '주얼리샵', '신발가게', '과일가게', '대형마트', '백화점', '다잇소', '빵가게', '옷가게'];
             if(shopItems.filter(i => placed.includes(i)).length >= 4) { 
                 bonusScore += 15; bonusList.push('쇼핑시설(15점)'); 
             }
 
-            // 7. 문화시설 점수 (목록 중 3개 모으면 10점)
             const cultureItems = ['박물관', '미술관', '과학관', '유적지', '헬스클럽', '테니스장', '농구장', '축구장', '배드민턴장'];
             if(cultureItems.filter(i => placed.includes(i)).length >= 3) { 
                 bonusScore += 10; bonusList.push('문화시설(10점)'); 
             }
 
-            // 8. 친환경공간 점수 (목록 중 3개 모으면 10점)
             const ecoItems = ['산', '공원', '옥상정원', '계곡', '바다', '생태연못'];
             if(ecoItems.filter(i => placed.includes(i)).length >= 3) { 
                 bonusScore += 10; bonusList.push('친환경공간(10점)'); 
             }
 
-            // 최종 점수 갱신
             document.getElementById('my-score').innerText = baseScore + bonusScore;
             document.getElementById('score-detail').innerText = `기본 점수: ${baseScore}점 | 보너스 점수: ${bonusScore}점 (${bonusList.join(', ') || '적용 항목 없음'})`;
         }
