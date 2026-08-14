@@ -49,7 +49,7 @@
 
         /* 기본 카드 (1칸 정사각형, 글자 17px) */
         .card-item { 
-            display: flex; align-items: center; justify-content: center; text-align: center;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
             border-radius: 10px; font-size: 17px; border: 2px solid transparent; 
             cursor: pointer; position: relative; word-break: keep-all; line-height: 1.2; padding: 4px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.08); aspect-ratio: 1 / 1; user-select: none;
@@ -83,10 +83,12 @@
 
         .quadrant { z-index: 2; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 8px; }
 
+        /* 보드판 슬롯 (완벽 중앙 정렬 적용) */
         .slot {
-            background: rgba(255, 255, 255, 0.95); border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            background: rgba(255, 255, 255, 0.95); border-radius: 12px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
             text-align: center; font-size: 15px; cursor: pointer; transition: all 0.2s; padding: 4px; word-break: keep-all; line-height: 1.2;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05); min-width: 0; min-height: 0; overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); min-width: 0; min-height: 0; overflow: hidden; width: 100%; height: 100%;
         }
 
         .slot.square-slot { border: 2.5px dashed #757575; aspect-ratio: 1 / 1; }
@@ -198,6 +200,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // 초기 카드 (고정 순서의 원본이 됨)
         const initialCards = {
             purple: { '독서실':1, '놀이터':2, '주차공간':1, '우체국':1, '병원':3, '약국':2, '유치원':1, '버스정류장':1, '음식점':2, '중학교':2, '학원':2, '카페':1, '초등학교':2, 'PC방':1, '세탁소':2, '노래방':1, '고등학교':1, '편의점':1 },
             blue: { '도서관':2, '소방서':1, '경찰서':1, '옥상정원':2, '보건소':1, '과일가게':1, '문화센터':1, '옷가게':1, '문구점':1, '대학교':1, '지하철역':2, '경로당':1, '볼링장':1, '카센터':1, '산':2, '공원':2, '주얼리샵':1, '축구장':1, '화장품가게':1, '대형마트':2, '농구장':1, '테니스장':1, '배드민턴장':1, '키즈카페':1, '헬스클럽':1, '빵집':1, '네일아트샵':1, '다이소':1, '핸드폰가게':1 },
@@ -290,14 +293,18 @@
             renderCards();
         }
 
+        // 고정된 카드 배열 순서로 출력
         function renderCards() {
             const container = document.getElementById('card-list');
             container.innerHTML = '';
             const category = sharedGroupCards[activeTab] || initialCards[activeTab];
             const pointMap = { purple: 1, blue: 2, red: 3, green: 4 };
 
-            for(let name in category) {
-                const count = category[name];
+            // initialCards에 정의된 순서대로 카드 출력 (순서 고정)
+            const fixedOrderNames = Object.keys(initialCards[activeTab]);
+
+            fixedOrderNames.forEach(name => {
+                const count = (category && category[name] !== undefined) ? category[name] : 0;
                 const cardEl = document.createElement('div');
                 
                 const isGreenClass = (activeTab === 'green') ? 'is-green' : '';
@@ -320,9 +327,10 @@
                     };
                 }
                 container.appendChild(cardEl);
-            }
+            });
         }
 
+        // 보드판 UI 렌더링 (완벽 중앙 정렬)
         function renderBoardUI() {
             for(let i=0; i<19; i++) {
                 const card = myBoard[i];
@@ -332,8 +340,8 @@
 
                 if(card) {
                     slot.className = `slot ${slotType === 'green' ? 'long-green-slot' : 'square-slot'} placed-${card.color}`;
-                    // 카드 이름과 똑같은 글자 크기로 아래 줄에 점수 표시
-                    slot.innerHTML = `<span>${card.name}</span><br>(${card.points}점)`;
+                    // 내용 및 점수 가로/세로 완전 중앙 정렬
+                    slot.innerHTML = `<div style="text-align:center; width:100%;">${card.name}<br>(${card.points}점)</div>`;
                 } else {
                     slot.className = `slot ${slotType === 'green' ? 'long-green-slot' : 'square-slot'}`;
                     slot.innerText = slotType === 'green' ? '초록 카드 전용 칸' : '';
