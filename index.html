@@ -401,20 +401,20 @@
 
             const schools = ['유치원', '초등학교', '중학교', '고등학교'];
             const schoolCnt = schools.filter(s => contains(s)).length;
-            if(schoolCnt === 4 && contains('대학교')) { bonusScore += 20; bonusList.push('교육시설 퍼펙트(20점)'); }
-            else if(schoolCnt >= 3) { bonusScore += 10; bonusList.push('교육시설 굿(10점)'); }
+            if(schoolCnt === 4 && contains('대학교')) { bonusScore += 20; bonusList.push('교육시설(20점)'); }
+            else if(schoolCnt >= 3) { bonusScore += 10; bonusList.push('교육시설(10점)'); }
 
-            if(contains('편의점') && contains('카페')) { bonusScore += 10; bonusList.push('편의시설(10점)'); }
+            if(contains('편의점') && contains('카페')) { bonusScore += 10; bonusList.push('상업시설(10점)'); }
 
-            if(contains('병원') && contains('약국') && contains('보건소')) { bonusScore += 15; bonusList.push('의료시설 퍼펙트(15점)'); }
-            else if(contains('병원') && contains('약국')) { bonusScore += 10; bonusList.push('의료시설 굿(10점)'); }
+            if(contains('병원') && contains('약국') && contains('보건소')) { bonusScore += 15; bonusList.push('의료시설(15점)'); }
+            else if(contains('병원') && contains('약국')) { bonusScore += 10; bonusList.push('의료시설(10점)'); }
 
             if(contains('소방서') && contains('경찰서')) { bonusScore += 10; bonusList.push('안전치안시설(10점)'); }
 
             if(contains('버스정류장') && contains('지하철역') && contains('기차역')) { bonusScore += 15; bonusList.push('교통시설(15점)'); }
 
             const shopItems = ['화장품가게', '주얼리샵', '신발가게', '과일가게', '대형마트', '백화점', '다이소', '빵집', '옷가게'];
-            if(shopItems.filter(i => contains(i)).length >= 4) { bonusScore += 15; bonusList.push('쇼핑시설(15점)'); }
+            if(shopItems.filter(i => contains(i)).length >= 4) { bonusScore += 15; bonusList.push('상업시설(15점)'); }
 
             const cultureItems = ['박물관', '미술관', '과학관', '유적지', '헬스장', '테니스장', '농구장', '축구장', '배드민턴장'];
             if(cultureItems.filter(i => contains(i)).length >= 3) { bonusScore += 10; bonusList.push('문화시설(10점)'); }
